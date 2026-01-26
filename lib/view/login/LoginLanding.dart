@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:public_hospital/color/AppColor.dart';
+import 'package:public_hospital/view/login/LoginCreateScreen.dart';
+import 'package:public_hospital/view/login/LoginInputScreen.dart';
 import '../../viewModel/Landing Viewmodel.dart';
 
 class LandingScreen extends StatelessWidget {
@@ -19,7 +21,6 @@ class LandingScreen extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    /// ---------- TOP WHITE CONTAINER ----------
                     Container(
                       height: MediaQuery.of(context).size.height * 0.65,
                       width: double.infinity,
@@ -34,7 +35,6 @@ class LandingScreen extends StatelessWidget {
                         children: [
                           const SizedBox(height: 40),
 
-                          /// IMAGE SLIDER
                           Expanded(
                             child: PageView.builder(
                               controller: viewModel.pageController,
@@ -51,8 +51,6 @@ class LandingScreen extends StatelessWidget {
                               },
                             ),
                           ),
-
-                          /// DOT INDICATOR
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: List.generate(
@@ -77,7 +75,6 @@ class LandingScreen extends StatelessWidget {
 
                           const SizedBox(height: 25),
 
-                          /// TITLE
                           Text(
                             'Welcome To Public Hospital',
                             textAlign: TextAlign.center,
@@ -90,7 +87,6 @@ class LandingScreen extends StatelessWidget {
 
                           const SizedBox(height: 10),
 
-                          /// SUBTITLE
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 30),
                             child: Text(
@@ -109,31 +105,28 @@ class LandingScreen extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 40),
-
-                    /// ---------- BUTTON SECTION ----------
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
                       child: Row(
                         children: [
-                          /// LOGIN BUTTON
                           Expanded(
                             child: SizedBox(
-                              height: 50,
+                              height: 55,
                               child: OutlinedButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(context, '/login');
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=> LoginCreateScreen()));
                                 },
                                 style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: AppColors.whiteColor),
+                                  side: BorderSide(color: AppColors.blue_200),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                                 child: const Text(
-                                  'Login',
+                                  'Sign Up',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.white,
+                                    color: AppColors.whiteColor,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -143,25 +136,24 @@ class LandingScreen extends StatelessWidget {
 
                           const SizedBox(width: 15),
 
-                          /// SIGN UP BUTTON
                           Expanded(
                             child: SizedBox(
-                              height: 50,
+                              height: 55,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(context, '/signup');
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=> LoginInputScreen()));
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: AppColors.blue_200,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                                 child: Text(
-                                  'Sign Up',
+                                  'Sign In',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: AppColors.blue100,
+                                    color: AppColors.whiteColor,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
