@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:public_hospital/color/AppColor.dart';
+import 'package:public_hospital/view/dashboard/homeScreen.dart';
 import 'package:public_hospital/view/login/LoginCreateScreen.dart';
 import 'package:public_hospital/view/login/LoginForgotPasswordScreen.dart';
 import 'package:public_hospital/viewModel/LoginInputViewModel.dart';
 
 class LoginInputScreen extends StatefulWidget {
   const LoginInputScreen({super.key});
+
 
   @override
   State<LoginInputScreen> createState() => _LoginInputScreenState();
@@ -103,10 +105,13 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                         width: double.infinity,
                         height: 55,
                         child: ElevatedButton(
-                          onPressed: vm.isButtonEnable? (){
+                          onPressed: vm.isButtonEnable? () async{
 
-                            //BackEnd code
-
+                            await vm.login();
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()),);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Login Successful'))
+                            );
                           }:null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: vm.isButtonEnable? AppColors.blue_200:AppColors.whiteColor_100,
