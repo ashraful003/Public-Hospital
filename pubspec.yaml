@@ -41,6 +41,14 @@ dev_dependencies:
   provider: ^6.1.5+1
   shared_preferences: ^2.2.2
   fluttertoast: ^8.2.4
+  flutter_pdfview: ^1.4.4
+  path_provider: ^2.1.5
+  http: ^1.6.0
+  syncfusion_flutter_pdfviewer: ^32.2.4
+  printing: ^5.12.0
+  intl: ^0.20.2
+  pdf: ^3.11.3
+
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -58,6 +66,8 @@ flutter:
     - assets/images/blood.png
     - assets/images/ambulance.png
     - assets/images/logo.png
+    - assets/MedicalReport.pdf
+    - assets/TestReport.pdf
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
