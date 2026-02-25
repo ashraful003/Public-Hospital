@@ -56,10 +56,10 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 5),
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(18),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.08),
@@ -69,13 +69,26 @@ class HomeScreen extends StatelessWidget {
                         ],
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: vm.topItems.map((item) {
-                          return HomeCircleItem(
-                            item: item,
-                            onTap: () => vm.onItemTap(context, item),
-                          );
-                        }).toList(),
+                        children: [
+                          HomeCircleItem(
+                            item: vm.topItems[0],
+                            onTap: () => vm.onItemTap(context, vm.topItems[0]),
+                          ),
+
+                          Expanded(
+                            child: Center(
+                              child: HomeCircleItem(
+                                item: vm.topItems[1],
+                                onTap: () => vm.onItemTap(context, vm.topItems[1]),
+                              ),
+                            ),
+                          ),
+
+                          HomeCircleItem(
+                            item: vm.topItems[2],
+                            onTap: () => vm.onItemTap(context, vm.topItems[2]),
+                          ),
+                        ],
                       ),
                     ),
 
@@ -83,13 +96,14 @@ class HomeScreen extends StatelessWidget {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            _sectionTitle("Patient"),
+                            _sectionTitle("Patient",context),
+                            const SizedBox(height: 4),
                             _gridSection(vm.patientItems, vm, context),
-                            const SizedBox(height: 10),
-                            _sectionTitle("Service"),
+                            _sectionTitle("Service",context),
+                            const SizedBox(height: 4),
                             _gridSection(vm.serviceItems, vm, context),
-                            const SizedBox(height: 10),
-                            _sectionTitle("Staff"),
+                            _sectionTitle("Staff",context),
+                            const SizedBox(height: 4),
                             _gridSection(vm.staffItem, vm, context),
                             const SizedBox(height: 10),
                           ],
@@ -106,24 +120,34 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 15,
-        right: 30,
-        bottom: 0.1,
-      ),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.blue100,
+  Widget _sectionTitle(String title, BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double horizontalPadding = 16;
+        if (constraints.maxWidth >= 1200) {
+          horizontalPadding = 40;
+        } else if (constraints.maxWidth >= 800) {
+          horizontalPadding = 28;
+        }
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            right: horizontalPadding,
           ),
-        ),
-      ),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.blue100,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -132,25 +156,53 @@ class HomeScreen extends StatelessWidget {
       HomeViewModel vm,
       BuildContext context,
       ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: GridView.builder(
-        itemCount: items.length,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 19,
-          childAspectRatio: .65,
-        ),
-        itemBuilder: (context, index) {
-          return HomeCircleItem(
-            item: items[index],
-            onTap: () => vm.onItemTap(context, items[index]),
-          );
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double width = constraints.maxWidth;
+
+        int crossAxisCount;
+        double childAspectRatio;
+
+        if (width < 500) {
+          crossAxisCount = 4;
+          childAspectRatio = 0.75;
+        }
+
+        else if (width < 900) {
+          crossAxisCount = 6;
+          childAspectRatio = 1.1;
+        }
+
+        else if (width < 1200) {
+          crossAxisCount = 7;
+          childAspectRatio = 1.15;
+        }
+        else {
+          crossAxisCount = 8;
+          childAspectRatio = 1.2;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: GridView.builder(
+            itemCount: items.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 8,
+              childAspectRatio: childAspectRatio,
+            ),
+            itemBuilder: (context, index) {
+              return HomeCircleItem(
+                item: items[index],
+                onTap: () => vm.onItemTap(context, items[index]),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:public_hospital/model/HomeItemModel.dart';
 
 import '../../view/dashboard/AdmissionScreen.dart';
 import '../../view/dashboard/AppointMentScreen.dart';
-import '../../view/dashboard/PrescriptionScreen.dart';
+import '../../view/dashboard/SearchPrescriptionScreen.dart';
 
 class HomeViewModel extends ChangeNotifier {
   // ================= TOP ITEMS =================
@@ -151,7 +151,7 @@ class HomeViewModel extends ChangeNotifier {
     if (item.title == "Prescription") {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const PrescriptionScreen()),
+        MaterialPageRoute(builder: (_) => const SearchPrescriptionScreen()),
       );
       return;
     }
