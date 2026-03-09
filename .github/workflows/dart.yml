@@ -2,27 +2,28 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Flutter
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.7.0"
-
+          channel: stable
+      - name: Flutter Doctor
+        run: flutter doctor
+      - name: Clean project
+        run: flutter clean
       - name: Get dependencies
         run: flutter pub get
-
       - name: Analyze project
         run: flutter analyze
-
       - name: Run tests
         run: flutter test
