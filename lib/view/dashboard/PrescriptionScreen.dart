@@ -15,8 +15,6 @@ class PrescriptionScreen extends StatelessWidget {
       create: (_) => PrescriptionViewModel(patientId),
       child: Scaffold(
         appBar: AppBar(title: const Text('Prescriptions')),
-
-        // ✅ Floating Button works now
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(
@@ -48,19 +46,29 @@ class PrescriptionScreen extends StatelessWidget {
                 final prescription = viewModel.prescriptions[index];
                 return Card(
                   elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
-                    leading: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 35),
-                    title: Text(prescription.patientName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    leading: const Icon(
+                      Icons.picture_as_pdf,
+                      color: Colors.red,
+                      size: 35,
+                    ),
+                    title: Text(
+                      prescription.patientName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Text("Date: ${prescription.date}"),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => PdfViewerScreen(pdfPath: prescription.pdfUrl),
+                          builder: (_) =>
+                              PdfViewerScreen(pdfPath: prescription.pdfUrl),
                         ),
                       );
                     },

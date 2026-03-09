@@ -20,7 +20,6 @@ class SearchPrescriptionScreen extends StatelessWidget {
               padding: const EdgeInsets.only(left: 20, right: 20, top: 70),
               child: Column(
                 children: [
-                  // Patient ID input
                   TextField(
                     controller: viewModel.searchController,
                     decoration: InputDecoration(
@@ -35,8 +34,6 @@ class SearchPrescriptionScreen extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 20),
-
-                  // Show button only if input is not empty
                   if (viewModel.searchController.text.isNotEmpty)
                     SizedBox(
                       width: double.infinity,
@@ -53,7 +50,8 @@ class SearchPrescriptionScreen extends StatelessWidget {
                         ),
                         child: viewModel.isLoading
                             ? const CircularProgressIndicator(
-                            color: Colors.white)
+                                color: Colors.white,
+                              )
                             : const Text('Search'),
                       ),
                     ),

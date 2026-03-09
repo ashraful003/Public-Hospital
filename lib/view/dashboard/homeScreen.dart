@@ -1,13 +1,47 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:public_hospital/color/AppColor.dart';
-import 'package:public_hospital/model/HomeItemModel.dart';
 import 'package:public_hospital/view/dashboard/drawer_layout.dart';
 import 'package:public_hospital/viewModel/dashboard/HomeViewModel.dart';
 import 'package:public_hospital/widgets/HomeCircleItem.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  double _horizontalPadding(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    if (width < 600) return 16;
+    if (width < 900) return 24;
+    if (width < 1200) return 32;
+    return 48;
+  }
+
+  int _gridCount(BuildContext context, int itemLength) {
+    double width = MediaQuery.of(context).size.width;
+    if (width < 600) return 4;
+    if (width < 900) return 6;
+    double padding = _horizontalPadding(context);
+    double availableWidth = width - (padding * 2);
+    const double itemWidth = 100;
+    int count = (availableWidth / itemWidth).floor();
+    if (count <= 0) count = 1;
+    if (count > itemLength) {
+      count = itemLength;
+    }
+    return count;
+  }
+
+  double _calculateItemWidth(BuildContext context, int itemLength) {
+    double padding = _horizontalPadding(context);
+    double width = MediaQuery.of(context).size.width;
+    int crossAxisCount = _gridCount(context, itemLength);
+    double totalSpacing = (crossAxisCount - 1) * 12;
+    double availableWidth = width - (padding * 2) - totalSpacing;
+    availableWidth = max(availableWidth, crossAxisCount * 80);
+    return availableWidth / crossAxisCount;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -17,96 +51,30 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: const Color(0xffF2F3F7),
         body: Consumer<HomeViewModel>(
           builder: (context, vm, child) {
+            double padding = _horizontalPadding(context);
             return Stack(
               children: [
-                Container(
-                  height: 145,
-                  color: AppColors.blue_200,
-                ),
-
+                Container(height: 145, color: AppColors.blue_200),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 38),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Builder(
-                        builder: (menuContext) => Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.menu, color: Colors.white),
-                              onPressed: () {
-                                Scaffold.of(menuContext).openDrawer();
-                              },
-                            ),
-                            const SizedBox(width: 5),
-                            const Text(
-                              "Public Hospital",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 15,
-                            offset: const Offset(0, 6),
-                          )
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          HomeCircleItem(
-                            item: vm.topItems[0],
-                            onTap: () => vm.onItemTap(context, vm.topItems[0]),
-                          ),
-
-                          Expanded(
-                            child: Center(
-                              child: HomeCircleItem(
-                                item: vm.topItems[1],
-                                onTap: () => vm.onItemTap(context, vm.topItems[1]),
-                              ),
-                            ),
-                          ),
-
-                          HomeCircleItem(
-                            item: vm.topItems[2],
-                            onTap: () => vm.onItemTap(context, vm.topItems[2]),
-                          ),
-                        ],
-                      ),
-                    ),
-
+                    _buildHeader(context, padding),
+                    const SizedBox(height: 8),
+                    _buildTopItems(context, vm, padding),
                     Expanded(
                       child: SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 20),
                         child: Column(
-                          children: [
-                            _sectionTitle("Patient",context),
-                            const SizedBox(height: 4),
-                            _gridSection(vm.patientItems, vm, context),
-                            _sectionTitle("Service",context),
-                            const SizedBox(height: 4),
-                            _gridSection(vm.serviceItems, vm, context),
-                            _sectionTitle("Staff",context),
-                            const SizedBox(height: 4),
-                            _gridSection(vm.staffItem, vm, context),
-                            const SizedBox(height: 10),
-                          ],
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: vm.sections.map((section) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: padding,
+                              ),
+                              child: _buildSection(section, vm, context),
+                            );
+                          }).toList(),
                         ),
                       ),
                     ),
@@ -120,89 +88,133 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title, BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double horizontalPadding = 16;
-        if (constraints.maxWidth >= 1200) {
-          horizontalPadding = 40;
-        } else if (constraints.maxWidth >= 800) {
-          horizontalPadding = 28;
-        }
-
-        return Padding(
-          padding: EdgeInsets.only(
-            left: horizontalPadding,
-            right: horizontalPadding,
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
+  Widget _buildHeader(BuildContext context, double padding) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      child: Builder(
+        builder: (menuContext) => Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => Scaffold.of(menuContext).openDrawer(),
+            ),
+            const SizedBox(width: 5),
+            const Text(
+              "Public Hospital",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: AppColors.blue100,
               ),
             ),
-          ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopItems(
+    BuildContext context,
+    HomeViewModel vm,
+    double padding,
+  ) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: vm.topItems.map((item) {
+            return Expanded(
+              child: HomeCircleItem(
+                item: item,
+                onTap: () => vm.onItemTap(context, item),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection(
+    dynamic section,
+    HomeViewModel vm,
+    BuildContext context,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(section.title),
+        _gridSection(section.items, vm, context),
+        if (section.title == "Service") ...[
+          const SizedBox(height: 16),
+          _buildResponsiveStaffButton(context, vm),
+        ],
+      ],
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppColors.blue100,
+        ),
+      ),
+    );
+  }
+
+  Widget _gridSection(List items, HomeViewModel vm, BuildContext context) {
+    return GridView.builder(
+      itemCount: items.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _gridCount(context, items.length),
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.85,
+      ),
+      itemBuilder: (context, index) {
+        return HomeCircleItem(
+          item: items[index],
+          onTap: () => vm.onItemTap(context, items[index]),
         );
       },
     );
   }
 
-  Widget _gridSection(
-      List<HomeItemModel> items,
-      HomeViewModel vm,
-      BuildContext context,
-      ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double width = constraints.maxWidth;
+  Widget _buildResponsiveStaffButton(BuildContext context, HomeViewModel vm) {
+    double itemWidth = _calculateItemWidth(context, 8);
 
-        int crossAxisCount;
-        double childAspectRatio;
-
-        if (width < 500) {
-          crossAxisCount = 4;
-          childAspectRatio = 0.75;
-        }
-
-        else if (width < 900) {
-          crossAxisCount = 6;
-          childAspectRatio = 1.1;
-        }
-
-        else if (width < 1200) {
-          crossAxisCount = 7;
-          childAspectRatio = 1.15;
-        }
-        else {
-          crossAxisCount = 8;
-          childAspectRatio = 1.2;
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: GridView.builder(
-            itemCount: items.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 8,
-              childAspectRatio: childAspectRatio,
-            ),
-            itemBuilder: (context, index) {
-              return HomeCircleItem(
-                item: items[index],
-                onTap: () => vm.onItemTap(context, items[index]),
-              );
-            },
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        SizedBox(
+          width: itemWidth > 0 ? itemWidth : 80,
+          child: HomeCircleItem(
+            item: vm.staffButton,
+            onTap: () => vm.onItemTap(context, vm.staffButton),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

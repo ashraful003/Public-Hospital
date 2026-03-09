@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
 class PdfViewerScreen extends StatelessWidget {
-  final String pdfPath; // asset path or network URL
+  final String pdfPath;
 
   const PdfViewerScreen({super.key, required this.pdfPath});
 
@@ -13,15 +14,15 @@ class PdfViewerScreen extends StatelessWidget {
       appBar: AppBar(title: const Text("PDF Viewer")),
       body: isNetwork
           ? SfPdfViewer.network(
-        pdfPath,
-        canShowScrollHead: true,
-        canShowScrollStatus: true,
-      )
+              pdfPath,
+              canShowScrollHead: true,
+              canShowScrollStatus: true,
+            )
           : SfPdfViewer.asset(
-        pdfPath,
-        canShowScrollHead: true,
-        canShowScrollStatus: true,
-      ),
+              pdfPath,
+              canShowScrollHead: true,
+              canShowScrollStatus: true,
+            ),
     );
   }
 }

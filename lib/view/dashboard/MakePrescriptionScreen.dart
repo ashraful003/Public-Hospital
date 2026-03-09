@@ -22,8 +22,7 @@ class _MakePrescriptionBody extends StatefulWidget {
   const _MakePrescriptionBody({required this.patientId});
 
   @override
-  State<_MakePrescriptionBody> createState() =>
-      _MakePrescriptionBodyState();
+  State<_MakePrescriptionBody> createState() => _MakePrescriptionBodyState();
 }
 
 class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
@@ -42,36 +41,20 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
     final vm = context.watch<MakePrescriptionViewModel>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Make Prescription"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Make Prescription"), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Weight Field
-            _buildField(vm.weightController, "Weight (kg)"),
+            _buildField(vm.weightController, "Weight"),
+            const SizedBox(height: 7),
+            _buildField(vm.bpController, "BP"),
+            const SizedBox(height: 9),
+            _buildField(vm.problemsController, "Problems", maxLines: 3),
             const SizedBox(height: 12),
-
-            // ✅ Complaints Field
-            _buildField(vm.complaintsController, "Problems", maxLines: 3),
-            const SizedBox(height: 12),
-
-            // ✅ Diagnosis Field
-            _buildField(vm.diagnosisController, "Diagnosis", maxLines: 2),
-            const SizedBox(height: 12),
-
-            // ✅ Medicines Field
-            _buildField(
-              vm.medicineController,
-              "Medicines",
-              maxLines: 8,
-            ),
+            _buildField(vm.medicineController, "Medicines", maxLines: 8),
             const SizedBox(height: 24),
-
-            // ✅ Generate PDF Button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -105,7 +88,6 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
 
             const SizedBox(height: 16),
 
-            // ✅ Submit to Server Button (only visible after PDF generated)
             if (vm.isPdfGenerated) ...[
               SizedBox(
                 width: double.infinity,
@@ -114,39 +96,39 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                   onPressed: vm.isSubmitting
                       ? null
                       : () async {
-                    final success = await vm.submitToServer();
+                          final success = await vm.submitToServer();
 
-                    if (context.mounted) {
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "✅ Prescription submitted to server!",
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "❌ ${vm.errorMessage ?? 'Submission failed'}",
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  },
+                          if (context.mounted) {
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "✅ Prescription submitted to server!",
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "❌ ${vm.errorMessage ?? 'Submission failed'}",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
                   icon: vm.isSubmitting
                       ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : vm.isSubmitted
                       ? const Icon(Icons.check_circle)
                       : const Icon(Icons.cloud_upload),
@@ -171,7 +153,6 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
               ),
             ],
 
-            // ✅ Show error message if any
             if (vm.errorMessage != null) ...[
               const SizedBox(height: 12),
               Container(
@@ -196,8 +177,6 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                 ),
               ),
             ],
-
-            // ✅ Success message
             if (vm.isSubmitted) ...[
               const SizedBox(height: 12),
               Container(
@@ -231,19 +210,17 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
   }
 
   Widget _buildField(
-      TextEditingController controller,
-      String label, {
-        int maxLines = 1,
-      }) {
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+  }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
         alignLabelWithHint: true,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

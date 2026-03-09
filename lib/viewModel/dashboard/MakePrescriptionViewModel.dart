@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../model/DoctorModel.dart';
+import '../../model/MakePrescriptionModel.dart';
 import '../../model/UserModel.dart';
 import '../../view/dashboard/MakePdfService.dart';
 
@@ -11,11 +12,9 @@ class MakePrescriptionViewModel extends ChangeNotifier {
   UserModel? patient;
 
   final weightController = TextEditingController();
-  final complaintsController = TextEditingController();
-  final diagnosisController = TextEditingController();
+  final problemsController = TextEditingController();
+  final bpController = TextEditingController();
   final medicineController = TextEditingController();
-
-  // ✅ Track states
   bool isPdfGenerated = false;
   bool isSubmitting = false;
   bool isSubmitted = false;
@@ -23,19 +22,23 @@ class MakePrescriptionViewModel extends ChangeNotifier {
 
   void loadDoctor() {
     doctor = DoctorModel(
-      name: "Associate Prof. Dr. Md. Shah Jahan",
+      name: "Associate Prof. Dr. Md. Ashraful Alam",
       degree: "MBBS, FCPS (Pediatrics)",
-      hospital: "BRB Hospitals Limited",
-      address: "77/A Panthapath, Dhaka",
-      phone: "01647XXXXXX",
+      hospital: "Public Hospital",
+      address: "Panthapath, Dhaka",
+      phone: "01647000000",
+      dob: DateTime(1980, 5, 15),
+      institute: 'Dhaka Medical College & Hospital',
+      specialist: 'Cardiologist',
+      isActive: false,
     );
     notifyListeners();
   }
 
   void loadPatient(String patientId) {
     patient = UserModel(
-      name: "MD. Anas",
-      dob: DateTime(2025, 6, 5),
+      name: "MD. Ashraful Alam",
+      dob: DateTime(1997, 12, 12),
       patientId: patientId,
       email: '',
       phone: '',
@@ -53,26 +56,35 @@ class MakePrescriptionViewModel extends ChangeNotifier {
         .toList();
   }
 
-  // ✅ Generate PDF
   Future<void> generatePrescription() async {
     if (doctor == null || patient == null) return;
 
-    await MakePdfService.generatePrescription(
+    final prescription = MakePrescriptionModel(
       doctor: doctor!,
       patient: patient!,
       weight: weightController.text,
-      complaints: complaintsController.text,
-      diagnosis: diagnosisController.text,
+      problems: problemsController.text,
+      bloodPressure: bpController.text,
       medicines: _getMedicineList(),
+      date: DateTime.now(),
+    );
+
+    await MakePdfService.generatePrescription(
+      doctor: prescription.doctor,
+      patient: prescription.patient,
+      weight: prescription.weight,
+      problems: prescription.problems,
+      bloodPressure: prescription.bloodPressure,
+      medicines: prescription.medicines,
     );
 
     isPdfGenerated = true;
     isSubmitted = false;
     errorMessage = null;
+
     notifyListeners();
   }
 
-  // ✅ Submit prescription data to server
   Future<bool> submitToServer() async {
     if (doctor == null || patient == null) return false;
 
@@ -81,7 +93,6 @@ class MakePrescriptionViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Build the request body
       final Map<String, dynamic> body = {
         "doctor": {
           "name": doctor!.name,
@@ -96,21 +107,16 @@ class MakePrescriptionViewModel extends ChangeNotifier {
           "age": patient!.age,
           "weight": weightController.text,
         },
-        "complaints": complaintsController.text,
-        "diagnosis": diagnosisController.text,
+        "complaints": problemsController.text,
+        "diagnosis": bpController.text,
         "medicines": _getMedicineList(),
         "date": DateTime.now().toIso8601String(),
       };
-
-      // ✅ Replace with your actual server URL
       const String apiUrl = "https://your-server.com/api/prescriptions";
 
       final response = await http.post(
         Uri.parse(apiUrl),
-        headers: {
-          "Content-Type": "application/json",
-          // "Authorization": "Bearer YOUR_TOKEN", // if needed
-        },
+        headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );
 
@@ -139,8 +145,8 @@ class MakePrescriptionViewModel extends ChangeNotifier {
   @override
   void dispose() {
     weightController.dispose();
-    complaintsController.dispose();
-    diagnosisController.dispose();
+    problemsController.dispose();
+    bpController.dispose();
     medicineController.dispose();
     super.dispose();
   }
