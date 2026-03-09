@@ -30,14 +30,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   provider: ^6.1.5+1
-  shared_preferences: ^2.2.2
-  fluttertoast: ^8.2.4
+  shared_preferences: ^2.5.3
+  fluttertoast: ^8.2.12
   flutter_pdfview: ^1.4.4
   path_provider: ^2.1.5
   http: ^1.6.0
   syncfusion_flutter_pdfviewer: ^32.2.4
-  printing: ^5.12.0
+  printing: ^5.13.0
   intl: ^0.20.2
   pdf: ^3.11.3
   url_launcher: ^6.3.2
