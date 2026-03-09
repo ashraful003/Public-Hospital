@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../color/AppColor.dart';
-import '../../viewModel/dashboard/drawer_viewmodel.dart';
+import '../../color/app_color.dart';
+import '../../viewModel/dashboard/drawer_view_model.dart';
 
 class DrawerLayout extends StatelessWidget {
   const DrawerLayout({super.key});

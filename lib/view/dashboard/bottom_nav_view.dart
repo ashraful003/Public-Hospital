@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:public_hospital/view/dashboard/AppointMentScreen.dart';
-import 'package:public_hospital/view/dashboard/ProfileScreen.dart';
+import 'package:public_hospital/view/dashboard/appointment_screen.dart';
+import 'package:public_hospital/view/dashboard/profile_screen.dart';
 
-import 'homeScreen.dart';
+import 'home_screen.dart';
 
 class BottomNavView extends StatefulWidget {
   const BottomNavView({super.key});

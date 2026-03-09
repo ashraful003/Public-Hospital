@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:public_hospital/data/shared_pref_service.dart';
 import 'package:public_hospital/utils/pref_keys.dart';
 import 'package:public_hospital/view/dashboard/bottom_nav_view.dart';
-import 'package:public_hospital/view/login/LoginLanding.dart';
+import 'package:public_hospital/view/login/login_landing.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
