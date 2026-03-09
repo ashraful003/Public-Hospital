@@ -1,27 +1,25 @@
-class DoctorModel {
+class DoctorAssistantModel {
   final String nationalId;
   final String name;
-  final String specialist;
-  final String degree;
-  final String hospital;
+  final String email;
   final String address;
   final String phone;
   final DateTime dob;
   final String institute;
-  final String? imageUrl;
+  final String degree;
   final bool isActive;
+  final String? imageUrl;
 
-  DoctorModel({
-    this.nationalId = '',
+  DoctorAssistantModel({
+    required this.nationalId,
     required this.name,
-    required this.specialist,
-    required this.degree,
-    required this.hospital,
+    required this.email,
     required this.address,
     required this.phone,
     required this.dob,
     required this.institute,
-    this.imageUrl,
+    required this.degree,
     required this.isActive,
-  });
+    this.imageUrl,
+});
 }

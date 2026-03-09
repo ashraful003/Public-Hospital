@@ -1,27 +1,26 @@
-class DoctorModel {
+class NurseModel {
   final String nationalId;
   final String name;
-  final String specialist;
-  final String degree;
-  final String hospital;
+  final String email;
   final String address;
   final String phone;
   final DateTime dob;
   final String institute;
-  final String? imageUrl;
+  final String degree;
+  final String license;
   final bool isActive;
-
-  DoctorModel({
-    this.nationalId = '',
+  final String? imageUrl;
+  NurseModel({
+    required this.nationalId,
     required this.name,
-    required this.specialist,
-    required this.degree,
-    required this.hospital,
+    required this.email,
     required this.address,
     required this.phone,
     required this.dob,
     required this.institute,
-    this.imageUrl,
+    required this.degree,
+    required this.license,
     required this.isActive,
+    this.imageUrl,
   });
 }
