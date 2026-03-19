@@ -24,7 +24,6 @@ class DoctorAssistantScreen extends StatelessWidget {
       create: (_) => DoctorAssistantViewModel(),
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
-
         appBar: AppBar(
           backgroundColor: AppColors.blue_200,
           iconTheme: const IconThemeData(color: Colors.white),
@@ -46,11 +45,11 @@ class DoctorAssistantScreen extends StatelessWidget {
           )
               : null,
         ),
-
         body: Consumer<DoctorAssistantViewModel>(
           builder: (context, vm, child) {
             return Column(
               children: [
+                // Tabs
                 Container(
                   color: Colors.white,
                   child: Row(
@@ -69,11 +68,13 @@ class DoctorAssistantScreen extends StatelessWidget {
                   ),
                 ),
 
+                // Search + List
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
+                        // Search Field
                         TextField(
                           decoration: InputDecoration(
                             hintText: 'Search by National ID',
@@ -87,9 +88,9 @@ class DoctorAssistantScreen extends StatelessWidget {
                           ),
                           onChanged: vm.searchByNationalId,
                         ),
-
                         const SizedBox(height: 20),
 
+                        // Assistant List
                         Expanded(
                           child: vm.assistants.isEmpty
                               ? const Center(
@@ -101,7 +102,6 @@ class DoctorAssistantScreen extends StatelessWidget {
                               : ListView.builder(
                             itemCount: vm.assistants.length,
                             itemBuilder: (context, index) {
-
                               final assistant = vm.assistants[index];
 
                               return Card(
@@ -113,13 +113,21 @@ class DoctorAssistantScreen extends StatelessWidget {
                                   leading: CircleAvatar(
                                     radius: 25,
                                     backgroundColor: Colors.grey.shade200,
-                                    child: const Icon(
+                                    backgroundImage: assistant.imageUrl != null &&
+                                        assistant.imageUrl!.isNotEmpty
+                                        ? AssetImage(assistant.imageUrl!)
+                                    as ImageProvider
+                                        : null,
+                                    child: assistant.imageUrl == null ||
+                                        assistant.imageUrl!.isEmpty
+                                        ? const Icon(
                                       Icons.person,
                                       color: Colors.grey,
-                                    ),
+                                    )
+                                        : null,
                                   ),
                                   title: Text(
-                                    assistant.name,
+                                    assistant.name!,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -127,7 +135,6 @@ class DoctorAssistantScreen extends StatelessWidget {
                                   subtitle: Text(
                                     'National ID: ${assistant.nationalId}',
                                   ),
-
                                   onTap: () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(

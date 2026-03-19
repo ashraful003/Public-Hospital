@@ -2,16 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:public_hospital/color/app_color.dart';
 import 'package:public_hospital/viewModel/login_forgot_password_view_model.dart';
+import '../otp_verification_screen.dart';
 
-class LoginForgotPasswordScreen extends StatefulWidget {
+class LoginForgotPasswordScreen extends StatelessWidget {
   const LoginForgotPasswordScreen({super.key});
 
-  @override
-  State<LoginForgotPasswordScreen> createState() =>
-      _LoginForgotPasswordScreenState();
-}
-
-class _LoginForgotPasswordScreenState extends State<LoginForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -28,75 +23,95 @@ class _LoginForgotPasswordScreenState extends State<LoginForgotPasswordScreen> {
         ),
         body: Consumer<LoginForgotPasswordViewModel>(
           builder: (context, vm, _) {
-            return Padding(
-              padding: const EdgeInsets.only(left: 35, right: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Forgot Password',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textColor,
+            return GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Forgot Password',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColor,
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 40),
-                  _buildfield(
-                    controller: vm.emailController,
-                    label: 'Email',
-                    icon: Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  SizedBox(
-                    height: 55,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                        onPressed: vm.isButtonEnable?(){
+                    const SizedBox(height: 10),
 
-                          //Back End Code
-                        }:null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: vm.isButtonEnable? AppColors.blue_200: AppColors.whiteColor_100,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadiusGeometry.circular(8),
-                          )
+                    const Text(
+                      'Enter your email or phone number to receive OTP',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+
+                    const SizedBox(height: 40),
+                    TextField(
+                      controller: vm.inputController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: "Email or Phone",
+                        prefixIcon: const Icon(Icons.person),
+                        errorText: vm.errorMessage,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          'Next',
-                          style: TextStyle(fontSize: 16,color: AppColors.whiteColor),
-                        )
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      height: 55,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: vm.isButtonEnabled && !vm.isLoading
+                            ? () async {
+                                final user = await vm.sendOtp(context);
+                                if (user != null && context.mounted) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          OtpVerificationScreen(user: user),
+                                    ),
+                                  );
+                                }
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: vm.isButtonEnabled
+                              ? AppColors.blue_200
+                              : Colors.grey.shade300,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: vm.isLoading
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Send OTP',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildfield({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    bool readOnly = false,
-    VoidCallback? onTop,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        readOnly: readOnly,
-        onTap: onTop,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );

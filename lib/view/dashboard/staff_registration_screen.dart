@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodel/dashboard/staff_registration_view_model.dart';
+import '../../model/user_model.dart';
 
 class StaffRegistrationScreen extends StatefulWidget {
   const StaffRegistrationScreen({super.key});
@@ -14,169 +15,147 @@ class StaffRegistrationScreen extends StatefulWidget {
 class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
   bool get showBackButton {
     if (kIsWeb) return false;
-
-    return defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS ||
-        defaultTargetPlatform == TargetPlatform.linux;
+    return [
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+      TargetPlatform.linux,
+    ].contains(defaultTargetPlatform);
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => StaffRegistrationViewModel(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Registration Form"),
-
-          automaticallyImplyLeading: false,
-
-          leading: showBackButton
-              ? IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                )
-              : null,
-        ),
-
-        body: SafeArea(
-          child: Consumer<StaffRegistrationViewModel>(
-            builder: (context, vm, _) {
-              return SingleChildScrollView(
+      child: Consumer<StaffRegistrationViewModel>(
+        builder: (context, vm, _) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Staff Registration"),
+              automaticallyImplyLeading: false,
+              leading: showBackButton
+                  ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                    )
+                  : null,
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
-
                     _buildField(
-                      controller: vm.nationalIdController,
-                      label: "National ID",
-                      icon: Icons.assignment,
+                      vm.nationalIdController,
+                      "National ID",
+                      Icons.assignment,
                     ),
-
+                    _buildField(vm.nameController, "Full Name", Icons.person),
                     _buildField(
-                      controller: vm.nameController,
-                      label: "Full Name",
-                      icon: Icons.person,
-                    ),
-
-                    _buildField(
-                      controller: vm.emailController,
-                      label: "Email",
-                      icon: Icons.email,
+                      vm.emailController,
+                      "Email",
+                      Icons.email,
                       keyboardType: TextInputType.emailAddress,
                     ),
-
                     _buildField(
-                      controller: vm.phoneController,
-                      label: "Phone Number",
-                      icon: Icons.phone,
+                      vm.phoneController,
+                      "Phone Number",
+                      Icons.phone,
                       keyboardType: TextInputType.phone,
                     ),
-
                     _buildField(
-                      controller: vm.addressController,
-                      label: "Address",
-                      icon: Icons.location_on,
+                      vm.addressController,
+                      "Address",
+                      Icons.location_on,
                     ),
-
                     _buildField(
-                      controller: vm.dobController,
-                      label: "Date of Birth",
-                      icon: Icons.calendar_month,
+                      vm.dobController,
+                      "Date of Birth",
+                      Icons.calendar_month,
                       readOnly: true,
                       onTap: () => vm.selectDate(context),
                     ),
-
                     _buildField(
-                      controller: vm.instituteController,
-                      label: "Institute Name",
-                      icon: Icons.account_balance,
+                      vm.instituteController,
+                      "Institute Name",
+                      Icons.account_balance,
                     ),
-
-                    _buildField(
-                      controller: vm.degreeController,
-                      label: "Degree",
-                      icon: Icons.school,
-                    ),
-
-                    DropdownButtonFormField<String>(
-                      initialValue: vm.selectedRole,
+                    _buildField(vm.degreeController, "Degree", Icons.school),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<UserRole>(
+                      value: vm.selectedRole,
                       decoration: const InputDecoration(
                         labelText: "Select Role",
                         border: OutlineInputBorder(),
                       ),
                       items: const [
                         DropdownMenuItem(
-                          value: "Doctor",
+                          value: UserRole.doctor,
                           child: Text("Doctor"),
                         ),
-                        DropdownMenuItem(value: "Nurse", child: Text("Nurse")),
                         DropdownMenuItem(
-                          value: "Doctor Assistant",
+                          value: UserRole.nurse,
+                          child: Text("Nurse"),
+                        ),
+                        DropdownMenuItem(
+                          value: UserRole.doctorAssistant,
                           child: Text("Doctor Assistant"),
                         ),
                         DropdownMenuItem(
-                          value: "Cleaning Staff",
+                          value: UserRole.cleaner,
                           child: Text("Cleaning Staff"),
                         ),
                       ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          vm.setRole(value);
-                        }
+                      onChanged: (role) {
+                        if (role != null) vm.setRole(role);
                       },
                     ),
-
                     const SizedBox(height: 20),
-
                     if (vm.isDoctor || vm.isNurse)
                       _buildField(
-                        controller: vm.licenseController,
-                        label: "License Number",
-                        icon: Icons.card_membership,
+                        vm.licenseController,
+                        "License Number",
+                        Icons.verified,
                       ),
-
                     if (vm.isDoctor)
                       _buildField(
-                        controller: vm.specialistController,
-                        label: "Specialist Area",
-                        icon: Icons.medical_services,
+                        vm.specialistController,
+                        "Specialist Area",
+                        Icons.medical_services,
                       ),
-
                     _buildPasswordField(
-                      controller: vm.passwordController,
-                      label: "Password",
-                      obscure: !vm.isPasswordVisible,
-                      toggle: vm.togglePassword,
+                      vm.passwordController,
+                      "Password",
+                      !vm.isPasswordVisible,
+                      vm.togglePassword,
                     ),
-
-                    const SizedBox(height: 20),
-
                     _buildPasswordField(
-                      controller: vm.confirmPasswordController,
-                      label: "Confirm Password",
-                      obscure: !vm.isConfirmPasswordVisible,
-                      toggle: vm.toggleConfirmPassword,
+                      vm.confirmPasswordController,
+                      "Confirm Password",
+                      !vm.isConfirmPasswordVisible,
+                      vm.toggleConfirmPassword,
                     ),
-
                     const SizedBox(height: 30),
-
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: vm.isButtonEnable
+                        onPressed: vm.isButtonEnabled
                             ? () {
-                                // Backend code here
+                                final user = vm.getStaffUserModel();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "${user.name} registered successfully!",
+                                    ),
+                                  ),
+                                );
                               }
                             : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: vm.isButtonEnable
+                          backgroundColor: vm.isButtonEnabled
                               ? Colors.blue
                               : Colors.grey,
                           shape: RoundedRectangleBorder(
@@ -189,22 +168,21 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 50),
                   ],
                 ),
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
+  Widget _buildField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
     TextInputType keyboardType = TextInputType.text,
     bool readOnly = false,
     VoidCallback? onTap,
@@ -225,12 +203,12 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
     );
   }
 
-  Widget _buildPasswordField({
-    required TextEditingController controller,
-    required String label,
-    required bool obscure,
-    required VoidCallback toggle,
-  }) {
+  Widget _buildPasswordField(
+    TextEditingController controller,
+    String label,
+    bool obscure,
+    VoidCallback toggle,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: TextField(

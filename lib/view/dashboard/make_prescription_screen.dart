@@ -39,7 +39,6 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<MakePrescriptionViewModel>();
-
     return Scaffold(
       appBar: AppBar(title: const Text("Make Prescription"), centerTitle: true),
       body: SingleChildScrollView(
@@ -61,21 +60,17 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
               child: ElevatedButton.icon(
                 onPressed: () async {
                   await vm.generatePrescription();
-
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("✅ Prescription PDF Generated"),
+                        content: Text("Prescription Generated"),
                         backgroundColor: Colors.green,
                       ),
                     );
                   }
                 },
                 icon: const Icon(Icons.picture_as_pdf),
-                label: const Text(
-                  "Generate PDF",
-                  style: TextStyle(fontSize: 16),
-                ),
+                label: const Text("Generate", style: TextStyle(fontSize: 16)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -85,9 +80,7 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
             if (vm.isPdfGenerated) ...[
               SizedBox(
                 width: double.infinity,
@@ -103,7 +96,7 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    "✅ Prescription submitted to server!",
+                                    "Prescription submitted to server!",
                                   ),
                                   backgroundColor: Colors.green,
                                 ),
@@ -112,7 +105,7 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "❌ ${vm.errorMessage ?? 'Submission failed'}",
+                                    "${vm.errorMessage ?? 'Submission failed'}",
                                   ),
                                   backgroundColor: Colors.red,
                                 ),
@@ -136,8 +129,8 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                     vm.isSubmitting
                         ? "Submitting..."
                         : vm.isSubmitted
-                        ? "Submitted ✓"
-                        : "Submit to Server",
+                        ? "Submitted"
+                        : "Submit",
                     style: const TextStyle(fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -152,7 +145,6 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                 ),
               ),
             ],
-
             if (vm.errorMessage != null) ...[
               const SizedBox(height: 12),
               Container(
@@ -201,7 +193,6 @@ class _MakePrescriptionBodyState extends State<_MakePrescriptionBody> {
                 ),
               ),
             ],
-
             const SizedBox(height: 30),
           ],
         ),

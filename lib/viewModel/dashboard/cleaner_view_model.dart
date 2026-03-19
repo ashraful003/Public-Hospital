@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:public_hospital/model/cleaner_model.dart';
+import 'package:public_hospital/model/user_model.dart';
 
 enum CleanerTab { all, active }
 
 class CleanerViewModel extends ChangeNotifier {
   CleanerTab _selectedTab = CleanerTab.all;
   CleanerTab get selectedTab => _selectedTab;
-  final List<CleanerModel> _allCleaner = [
-    CleanerModel(
+  final List<UserModel> _allCleaner = [
+    UserModel(
       nationalId: '12345678',
       name: 'John Smith',
       email: 'johnsmith@gmail.com',
@@ -16,9 +16,10 @@ class CleanerViewModel extends ChangeNotifier {
       dob: DateTime(1998, 12, 12),
       institute: 'Dhaka Rajdhani High School',
       degree: 'Secondary School Certificate',
+      imageUrl: 'assets/images/logo.png',
       isActive: true,
     ),
-    CleanerModel(
+    UserModel(
       nationalId: '89213756',
       name: 'John',
       email: 'john@gmail.com',
@@ -27,12 +28,13 @@ class CleanerViewModel extends ChangeNotifier {
       dob: DateTime(1998, 12, 12),
       institute: 'Dhaka Rajdhani High School',
       degree: 'Secondary School Certificate',
+      imageUrl: 'assets/images/logo.png',
       isActive: false,
     ),
   ];
-  List<CleanerModel> _filteredCleaners = [];
+  List<UserModel> _filteredCleaners = [];
 
-  List<CleanerModel> get cleaners => _filteredCleaners;
+  List<UserModel> get cleaners => _filteredCleaners;
 
   CleanerViewModel() {
     _filteredCleaners = List.from(_allCleaner);
@@ -45,21 +47,21 @@ class CleanerViewModel extends ChangeNotifier {
     }
     else{
       _filteredCleaners = _allCleaner
-          .where((cleaners) => cleaners.isActive)
+          .where((cleaners) => cleaners.isActive!)
           .toList();
     }
     notifyListeners();
   }
 
   void searchByNationalId(String id) {
-    List<CleanerModel> baseList = _selectedTab == CleanerTab.all
+    List<UserModel> baseList = _selectedTab == CleanerTab.all
         ? _allCleaner
-        : _allCleaner.where((d) => d.isActive).toList();
+        : _allCleaner.where((d) => d.isActive!).toList();
     if(id.isEmpty){
       _filteredCleaners = baseList;
     }else{
       _filteredCleaners = baseList
-          .where((cleaner)=>cleaner.nationalId.contains(id)).toList();
+          .where((cleaner)=>cleaner.nationalId!.contains(id)).toList();
     }
     notifyListeners();
   }

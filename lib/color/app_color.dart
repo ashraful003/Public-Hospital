@@ -9,4 +9,5 @@ class AppColors{
   static const Color textColor = Color(0xff000000);
   static const Color red100 = Color(0xffff6666);
   static const Color blue100 = Color(0xff9999ff);
+  static const Color black100 = Color(0xff1a1a1a);
 }

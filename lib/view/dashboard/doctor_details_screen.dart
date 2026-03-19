@@ -1,17 +1,16 @@
-// doctor_details_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:public_hospital/model/user_model.dart';
 import '../../color/app_color.dart';
 import '../../model/home_item_model.dart';
-import '../../model/doctor_model.dart';
 import '../../viewmodel/dashboard/doctor_details_view_model.dart';
 import '../../widgets/home_circle_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DoctorDetailsScreen extends StatelessWidget {
-  final DoctorModel doctor;
+  final UserModel doctor;
 
   const DoctorDetailsScreen({super.key, required this.doctor});
 
@@ -31,6 +30,7 @@ class DoctorDetailsScreen extends StatelessWidget {
       create: (_) => DoctorDetailsViewModel(doctor: doctor),
       child: Consumer<DoctorDetailsViewModel>(
         builder: (context, vm, _) {
+          final d = vm.doctor;
           return Scaffold(
             appBar: AppBar(
               backgroundColor: AppColors.blue_200,
@@ -46,9 +46,9 @@ class DoctorDetailsScreen extends StatelessWidget {
               automaticallyImplyLeading: false,
               leading: showBackButton
                   ? IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () => Navigator.pop(context),
-                    )
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              )
                   : null,
             ),
             body: SingleChildScrollView(
@@ -58,14 +58,16 @@ class DoctorDetailsScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: vm.doctor.imageUrl != null
-                        ? NetworkImage(vm.doctor.imageUrl!)
-                        : const AssetImage('assets/doctor_placeholder.png')
-                              as ImageProvider,
+                    backgroundImage: d.imageUrl != null &&
+                        d.imageUrl!.isNotEmpty
+                        ? d.imageUrl!.startsWith('http')
+                        ? NetworkImage(d.imageUrl!) as ImageProvider
+                        : AssetImage(d.imageUrl!) as ImageProvider
+                        : const AssetImage('assets/doctor_placeholder.png'),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    vm.doctor.name,
+                    d.name ?? "Unknown Doctor",
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -73,7 +75,7 @@ class DoctorDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "ID: ${vm.doctor.nationalId}",
+                    "ID: ${d.nationalId ?? "N/A"}",
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 8),
@@ -83,14 +85,16 @@ class DoctorDetailsScreen extends StatelessWidget {
                       Icon(
                         Icons.circle,
                         size: 12,
-                        color: vm.doctor.isActive ? Colors.green : Colors.red,
+                        color: (d.isActive == true) ? Colors.green : Colors.red,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        vm.doctor.isActive ? "Active" : "Inactive",
+                        (d.isActive == true) ? "Active" : "Inactive",
                         style: TextStyle(
                           fontSize: 14,
-                          color: vm.doctor.isActive ? Colors.green : Colors.red,
+                          color: (d.isActive == true)
+                              ? Colors.green
+                              : Colors.red,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -108,34 +112,38 @@ class DoctorDetailsScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           _buildDetailRow(
+                            icon: Icons.verified,
+                            value: d.license ?? "N/A",
+                          ),
+                          _buildDetailRow(
                             icon: Icons.cake,
-                            value: DateFormat(
-                              'dd MMM yyyy',
-                            ).format(vm.doctor.dob),
+                            value: d.dob != null
+                                ? DateFormat('dd MMM yyyy').format(d.dob!)
+                                : "N/A",
                           ),
                           _buildDetailRow(
                             icon: Icons.school_outlined,
-                            value: vm.doctor.institute,
+                            value: d.institute ?? "N/A",
                           ),
                           _buildDetailRow(
                             icon: Icons.school,
-                            value: vm.doctor.degree,
+                            value: d.degree ?? "N/A",
                           ),
                           _buildDetailRow(
                             icon: Icons.medical_services,
-                            value: vm.doctor.specialist,
+                            value: d.specialist ?? "N/A",
                           ),
                           _buildDetailRow(
-                            icon: Icons.local_hospital,
-                            value: vm.doctor.hospital,
+                            icon: Icons.email,
+                            value: d.email ?? "N/A",
                           ),
                           _buildDetailRow(
                             icon: Icons.location_on,
-                            value: vm.doctor.address,
+                            value: d.address ?? "N/A",
                           ),
                           _buildDetailRow(
                             icon: Icons.phone,
-                            value: vm.doctor.phone,
+                            value: d.phone ?? "N/A",
                           ),
                         ],
                       ),
@@ -146,28 +154,40 @@ class DoctorDetailsScreen extends StatelessWidget {
             ),
             floatingActionButton: isMobile
                 ? HomeCircleItem(
-                    item: HomeItemModel(
-                      icon: Icons.phone,
-                      bgColor: const Color(0xFF7E86E8),
-                      title: '',
+              item: HomeItemModel(
+                icon: Icons.phone,
+                bgColor: const Color(0xFF7E86E8),
+                title: '',
+              ),
+              circleSize: 60,
+              iconSize: 30,
+              onTap: () async {
+                final phoneNumber = d.phone ?? "";
+                if (phoneNumber.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Phone number not available'),
                     ),
-                    circleSize: 60,
-                    iconSize: 30,
-                    onTap: () async {
-                      final phoneNumber = vm.doctor.phone;
-                      final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
-
-                      if (await canLaunchUrl(callUri)) {
-                        await launchUrl(callUri);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Cannot make a call to $phoneNumber'),
-                          ),
-                        );
-                      }
-                    },
-                  )
+                  );
+                  return;
+                }
+                final Uri callUri = Uri(
+                  scheme: 'tel',
+                  path: phoneNumber,
+                );
+                if (await canLaunchUrl(callUri)) {
+                  await launchUrl(callUri);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Cannot make a call to $phoneNumber',
+                      ),
+                    ),
+                  );
+                }
+              },
+            )
                 : null,
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           );

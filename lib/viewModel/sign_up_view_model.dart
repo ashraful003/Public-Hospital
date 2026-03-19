@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../model/user_model.dart';
 
-class SignUpViewModel extends ChangeNotifier{
+class SignUpViewModel extends ChangeNotifier {
+  final nationalIdController = TextEditingController();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
@@ -12,11 +14,12 @@ class SignUpViewModel extends ChangeNotifier{
   bool isConfirmPasswordVisible = false;
   bool isButtonEnable = false;
 
-  SignUpViewModel(){
+  SignUpViewModel() {
     _addListeners();
   }
 
-  void _addListeners(){
+  void _addListeners() {
+    nationalIdController.addListener(_validateForm);
     nameController.addListener(_validateForm);
     emailController.addListener(_validateForm);
     phoneController.addListener(_validateForm);
@@ -26,8 +29,10 @@ class SignUpViewModel extends ChangeNotifier{
     confirmPasswordController.addListener(_validateForm);
   }
 
-  void _validateForm(){
-    final isValid = nameController.text.isNotEmpty &&
+  void _validateForm() {
+    final isValid =
+        nationalIdController.text.isNotEmpty &&
+        nameController.text.isNotEmpty &&
         emailController.text.isNotEmpty &&
         phoneController.text.isNotEmpty &&
         addressController.text.isNotEmpty &&
@@ -35,24 +40,45 @@ class SignUpViewModel extends ChangeNotifier{
         passwordController.text.isNotEmpty &&
         confirmPasswordController.text.isNotEmpty &&
         passwordController.text == confirmPasswordController.text;
-
-    if(isButtonEnable != isValid){
+    if (isButtonEnable != isValid) {
       isButtonEnable = isValid;
       notifyListeners();
     }
   }
 
-  void togglePassword(){
+  void togglePassword() {
     isPasswordVisible = !isPasswordVisible;
     notifyListeners();
   }
-  void toggleConfirmPassword(){
+
+  void toggleConfirmPassword() {
     isConfirmPasswordVisible = !isConfirmPasswordVisible;
     notifyListeners();
   }
 
+  UserModel createUser() {
+    final parts = dobController.text.split("/");
+    DateTime dob = DateTime(
+      int.parse(parts[2]),
+      int.parse(parts[1]),
+      int.parse(parts[0]),
+    );
+    return UserModel(
+      nationalId: nationalIdController.text,
+      name: nameController.text,
+      email: emailController.text,
+      phone: phoneController.text,
+      address: addressController.text,
+      dob: dob,
+      password: passwordController.text,
+      role: UserRole.patient,
+      isActive: true,
+    );
+  }
+
   @override
-  void dispose(){
+  void dispose() {
+    nationalIdController.dispose();
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();

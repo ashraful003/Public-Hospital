@@ -13,17 +13,17 @@ class NurseScreen extends StatelessWidget {
       create: (_) => NurseViewModel(),
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
+
         appBar: AppBar(
           backgroundColor: AppColors.blue_200,
-          title: const Text('Nurse',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+          title: const Text(
+            'Nurse',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
           iconTheme: const IconThemeData(color: Colors.white),
         ),
+
         body: Consumer<NurseViewModel>(
           builder: (context, vm, child) {
             return Column(
@@ -49,6 +49,7 @@ class NurseScreen extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
+
                     child: Column(
                       children: [
                         TextField(
@@ -64,7 +65,9 @@ class NurseScreen extends StatelessWidget {
                           ),
                           onChanged: vm.searchByNationalId,
                         ),
+
                         const SizedBox(height: 20),
+
                         Expanded(
                           child: vm.nurses.isEmpty
                               ? const Center(
@@ -83,24 +86,43 @@ class NurseScreen extends StatelessWidget {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
+
                                       child: ListTile(
                                         leading: CircleAvatar(
                                           radius: 25,
                                           backgroundColor: Colors.grey.shade200,
-                                          child: const Icon(
-                                            Icons.person,
-                                            color: Colors.grey,
-                                          ),
+                                          backgroundImage:
+                                              nurse.imageUrl != null
+                                              ? nurse.imageUrl!.startsWith(
+                                                      'assets',
+                                                    )
+                                                    ? AssetImage(
+                                                        nurse.imageUrl!,
+                                                      )
+                                                    : NetworkImage(
+                                                            nurse.imageUrl!,
+                                                          )
+                                                          as ImageProvider
+                                              : null,
+                                          child: nurse.imageUrl == null
+                                              ? const Icon(
+                                                  Icons.person,
+                                                  color: Colors.grey,
+                                                )
+                                              : null,
                                         ),
+
                                         title: Text(
-                                          nurse.name,
+                                          nurse.name ?? "Unknown Nurse",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
+
                                         subtitle: Text(
-                                          'National Id: ${nurse.nationalId}',
+                                          'National Id: ${nurse.nationalId ?? "N/A"}',
                                         ),
+
                                         onTap: () {
                                           Navigator.push(
                                             context,

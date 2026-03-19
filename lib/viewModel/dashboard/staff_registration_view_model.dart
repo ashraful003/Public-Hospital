@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../model/user_model.dart';
 
 class StaffRegistrationViewModel extends ChangeNotifier {
   final nationalIdController = TextEditingController();
@@ -13,39 +14,51 @@ class StaffRegistrationViewModel extends ChangeNotifier {
   final specialistController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  String? selectedRole;
 
+  UserRole? selectedRole;
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
-  bool isButtonEnable = false;
+  bool isButtonEnabled = false;
 
   StaffRegistrationViewModel() {
     _addListeners();
   }
 
   void _addListeners() {
-    nationalIdController.addListener(_validateForm);
-    nameController.addListener(_validateForm);
-    emailController.addListener(_validateForm);
-    phoneController.addListener(_validateForm);
-    addressController.addListener(_validateForm);
-    dobController.addListener(_validateForm);
-    instituteController.addListener(_validateForm);
-    degreeController.addListener(_validateForm);
-    licenseController.addListener(_validateForm);
-    specialistController.addListener(_validateForm);
-    passwordController.addListener(_validateForm);
-    confirmPasswordController.addListener(_validateForm);
+    [
+      nationalIdController,
+      nameController,
+      emailController,
+      phoneController,
+      addressController,
+      dobController,
+      instituteController,
+      degreeController,
+      licenseController,
+      specialistController,
+      passwordController,
+      confirmPasswordController,
+    ].forEach((controller) => controller.addListener(_validateForm));
   }
 
-  bool get isDoctor => selectedRole == "Doctor";
+  bool get isDoctor => selectedRole == UserRole.doctor;
 
-  bool get isNurse => selectedRole == "Nurse";
+  bool get isNurse => selectedRole == UserRole.nurse;
 
-  void setRole(String role) {
+  void setRole(UserRole role) {
     selectedRole = role;
-    notifyListeners();
     _validateForm();
+    notifyListeners();
+  }
+
+  void togglePassword() {
+    isPasswordVisible = !isPasswordVisible;
+    notifyListeners();
+  }
+
+  void toggleConfirmPassword() {
+    isConfirmPasswordVisible = !isConfirmPasswordVisible;
+    notifyListeners();
   }
 
   void _validateForm() {
@@ -64,7 +77,6 @@ class StaffRegistrationViewModel extends ChangeNotifier {
         selectedRole != null;
 
     bool roleValid = true;
-
     if (isDoctor) {
       roleValid =
           licenseController.text.isNotEmpty &&
@@ -73,12 +85,8 @@ class StaffRegistrationViewModel extends ChangeNotifier {
       roleValid = licenseController.text.isNotEmpty;
     }
 
-    final isValid = baseValid && roleValid;
-
-    if (isButtonEnable != isValid) {
-      isButtonEnable = isValid;
-      notifyListeners();
-    }
+    isButtonEnabled = baseValid && roleValid;
+    notifyListeners();
   }
 
   Future<void> selectDate(BuildContext context) async {
@@ -86,39 +94,63 @@ class StaffRegistrationViewModel extends ChangeNotifier {
       context: context,
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
-      initialDate: DateTime.now(),
+      initialDate: DateTime(1990),
     );
-
     if (picked != null) {
       dobController.text = "${picked.day}/${picked.month}/${picked.year}";
-      notifyListeners();
+      _validateForm();
     }
   }
 
-  void togglePassword() {
-    isPasswordVisible = !isPasswordVisible;
-    notifyListeners();
+  UserModel getStaffUserModel() {
+    return UserModel(
+      nationalId: nationalIdController.text,
+      name: nameController.text,
+      email: emailController.text,
+      phone: phoneController.text,
+      address: addressController.text,
+      dob: _parseDob(dobController.text),
+      institute: instituteController.text,
+      degree: degreeController.text,
+      license: licenseController.text.isEmpty ? null : licenseController.text,
+      specialist: specialistController.text.isEmpty
+          ? null
+          : specialistController.text,
+      password: passwordController.text,
+      role: selectedRole,
+      isActive: true,
+    );
   }
 
-  void toggleConfirmPassword() {
-    isConfirmPasswordVisible = !isConfirmPasswordVisible;
-    notifyListeners();
+  DateTime? _parseDob(String text) {
+    try {
+      final parts = text.split('/');
+      if (parts.length == 3) {
+        final day = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
+        final year = int.parse(parts[2]);
+        return DateTime(year, month, day);
+      }
+    } catch (_) {}
+    return null;
   }
 
   @override
   void dispose() {
-    nationalIdController.dispose();
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    addressController.dispose();
-    dobController.dispose();
-    instituteController.dispose();
-    degreeController.dispose();
-    licenseController.dispose();
-    specialistController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
+    [
+      nationalIdController,
+      nameController,
+      emailController,
+      phoneController,
+      addressController,
+      dobController,
+      instituteController,
+      degreeController,
+      licenseController,
+      specialistController,
+      passwordController,
+      confirmPasswordController,
+    ].forEach((controller) => controller.dispose());
     super.dispose();
   }
 }
