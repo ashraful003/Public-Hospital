@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:public_hospital/model/doctor_assistant_model.dart';
+import 'package:public_hospital/model/user_model.dart';
 class DoctorAssistantDetailsViewModel extends ChangeNotifier{
-  final DoctorAssistantModel assistant;
+  final UserModel assistant;
   DoctorAssistantDetailsViewModel({required this.assistant});
 }

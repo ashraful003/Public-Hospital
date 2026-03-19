@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:public_hospital/data/shared_pref_service.dart';
 import 'package:public_hospital/utils/pref_keys.dart';
-import 'package:public_hospital/view/dashboard/bottom_nav_view.dart';
+import 'package:public_hospital/view/dashboard/dashboard_screen.dart';
 import 'package:public_hospital/view/login/login_landing.dart';
 
 Future<void> main() async {
@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
     return FutureBuilder<bool>(
       future: _checkLogin(),
       builder: (context, snapshot) {
+
         if (!snapshot.hasData) {
           return const MaterialApp(
             home: Scaffold(
@@ -32,7 +33,9 @@ class MyApp extends StatelessWidget {
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: snapshot.data! ? const BottomNavView() : const LandingScreen(),
+          home: snapshot.data!
+              ? const DashboardScreen()
+              : const LandingScreen(),
         );
       },
     );

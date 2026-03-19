@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:public_hospital/color/app_color.dart';
-import 'package:public_hospital/view/dashboard/home_screen.dart';
 import 'package:public_hospital/view/login/login_create_screen.dart';
 import 'package:public_hospital/view/login/login_forgot_password_screen.dart';
 import 'package:public_hospital/viewModel/login_input_view_model.dart';
 
+import '../dashboard/dashboard_screen.dart';
+
 class LoginInputScreen extends StatefulWidget {
   const LoginInputScreen({super.key});
-
 
   @override
   State<LoginInputScreen> createState() => _LoginInputScreenState();
@@ -93,10 +93,16 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context)=>LoginForgotPasswordScreen()),
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      LoginForgotPasswordScreen(),
+                                ),
                               );
                             },
-                            child: const Text('Forgot Password',style: TextStyle(color: AppColors.blue_200),),
+                            child: const Text(
+                              'Forgot Password',
+                              style: TextStyle(color: AppColors.blue_200),
+                            ),
                           ),
                         ],
                       ),
@@ -105,26 +111,36 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                         width: double.infinity,
                         height: 55,
                         child: ElevatedButton(
-                          onPressed: vm.isButtonEnable? () async{
-
-                            await vm.login();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => HomeScreen()), // Navigate to Home screen
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Login Successful'))
-                            );
-                          }:null,
+                          onPressed: vm.isButtonEnable
+                              ? () async {
+                                  await vm.login();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => DashboardScreen(),
+                                    ), // Navigate to Home screen
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Login Successful'),
+                                    ),
+                                  );
+                                }
+                              : null,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: vm.isButtonEnable? AppColors.blue_200:AppColors.whiteColor_100,
+                            backgroundColor: vm.isButtonEnable
+                                ? AppColors.blue_200
+                                : AppColors.whiteColor_100,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadiusGeometry.circular(10),
                             ),
                           ),
                           child: const Text(
                             'Sign In',
-                            style: TextStyle(fontSize: 16,color: AppColors.whiteColor),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.whiteColor,
+                            ),
                           ),
                         ),
                       ),

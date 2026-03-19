@@ -1,8 +1,7 @@
-import 'doctor_model.dart';
 import 'user_model.dart';
 
 class MakePrescriptionModel {
-  final DoctorModel doctor;
+  final UserModel doctor;
   final UserModel patient;
   final String weight;
   final String problems;
@@ -20,19 +19,18 @@ class MakePrescriptionModel {
     required this.date,
   });
 
-  /// Convert object to JSON (for API)
   Map<String, dynamic> toJson() {
     return {
       "doctor": {
         "name": doctor.name,
         "degree": doctor.degree,
-        "hospital": doctor.hospital,
         "address": doctor.address,
         "phone": doctor.phone,
+        "specialist": doctor.specialist,
       },
       "patient": {
+        "patientId": patient.nationalId,
         "name": patient.name,
-        "patientId": patient.patientId,
         "age": patient.age,
         "weight": weight,
       },
@@ -43,37 +41,31 @@ class MakePrescriptionModel {
     };
   }
 
-  /// Create model from API JSON
   factory MakePrescriptionModel.fromJson(Map<String, dynamic> json) {
     return MakePrescriptionModel(
-      doctor: DoctorModel(
-        name: "Dr. John Doe",
-        degree: "MBBS",
-        hospital: "City Hospital",
-        address: "123 Street",
-        phone: "1234567890",
-        specialist: 'Cardiologist',
-        isActive: true,
-        dob: DateTime(1980, 5, 15),
-        institute: 'Medical Institute',
+      doctor: UserModel(
+        name: json["doctor"]["name"] ?? "Unknown",
+        degree: json["doctor"]["degree"] ?? "",
+        address: json["doctor"]["address"] ?? "",
+        phone: json["doctor"]["phone"] ?? "",
+        specialist: json["doctor"]["specialist"] ?? "",
+        institute: json["doctor"]["institute"] ?? "",
+        role: UserRole.doctor,
       ),
 
       patient: UserModel(
-        name: json["patient"]["name"],
-        email: "",
-        phone: "",
-        address: "",
+        name: json["patient"]["name"] ?? "",
         dob: DateTime.now(),
-        password: "",
-        patientId: json["patient"]["patientId"],
+        nationalId: json["patient"]["patientId"] ?? "",
         weight: json["patient"]["weight"] ?? "",
+        role: UserRole.patient,
       ),
 
       weight: json["patient"]["weight"] ?? "",
       problems: json["complaints"] ?? "",
       bloodPressure: json["diagnosis"] ?? "",
       medicines: List<String>.from(json["medicines"] ?? []),
-      date: DateTime.parse(json["date"]),
+      date: DateTime.parse(json["date"] ?? DateTime.now().toIso8601String()),
     );
   }
 }

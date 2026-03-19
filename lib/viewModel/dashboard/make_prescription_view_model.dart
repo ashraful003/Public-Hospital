@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-import '../../model/doctor_model.dart';
-import '../../model/make_prescription_model.dart';
 import '../../model/user_model.dart';
 import '../../view/dashboard/make_pdf_service.dart';
 
 class MakePrescriptionViewModel extends ChangeNotifier {
-  DoctorModel? doctor;
+  UserModel? doctor;
   UserModel? patient;
-
   final weightController = TextEditingController();
   final problemsController = TextEditingController();
   final bpController = TextEditingController();
@@ -21,98 +17,117 @@ class MakePrescriptionViewModel extends ChangeNotifier {
   String? errorMessage;
 
   void loadDoctor() {
-    doctor = DoctorModel(
+    doctor = UserModel(
+      nationalId: "D-001",
       name: "Associate Prof. Dr. Md. Ashraful Alam",
-      degree: "MBBS, FCPS (Pediatrics)",
-      hospital: "Public Hospital",
-      address: "Panthapath, Dhaka",
+      email: "doctor@hospital.com",
       phone: "01647000000",
+      address: "Panthapath, Dhaka",
       dob: DateTime(1980, 5, 15),
-      institute: 'Dhaka Medical College & Hospital',
-      specialist: 'Cardiologist',
-      isActive: false,
+      institute: "Dhaka Medical College & Hospital",
+      degree: "MBBS, FCPS (Pediatrics)",
+      specialist: "Cardiologist",
+      isActive: true,
     );
+
     notifyListeners();
   }
 
-  void loadPatient(String patientId) {
+  void loadPatient(String nationalId) {
     patient = UserModel(
+      nationalId: nationalId,
       name: "MD. Ashraful Alam",
+      address: "Dhaka",
       dob: DateTime(1997, 12, 12),
-      patientId: patientId,
-      email: '',
-      phone: '',
-      address: '',
-      password: '',
-      weight: '',
+      weight: "",
+      role: UserRole.patient,
     );
+
     notifyListeners();
   }
 
   List<String> _getMedicineList() {
     return medicineController.text
         .split('\n')
-        .where((m) => m.trim().isNotEmpty)
+        .map((m) => m.trim())
+        .where((m) => m.isNotEmpty)
         .toList();
   }
 
-  Future<void> generatePrescription() async {
-    if (doctor == null || patient == null) return;
+  bool _validateForm() {
+    if (doctor == null || patient == null) {
+      errorMessage = "Doctor or Patient not loaded";
+      return false;
+    }
+    if (weightController.text.trim().isEmpty) {
+      errorMessage = "Please enter patient weight";
+      return false;
+    }
+    if (problemsController.text.trim().isEmpty) {
+      errorMessage = "Please enter patient problems";
+      return false;
+    }
+    if (_getMedicineList().isEmpty) {
+      errorMessage = "Please add at least one medicine";
+      return false;
+    }
+    return true;
+  }
 
-    final prescription = MakePrescriptionModel(
+  Future<void> generatePrescription() async {
+    if (!_validateForm()) {
+      notifyListeners();
+      return;
+    }
+
+    await MakePdfService.generatePrescription(
       doctor: doctor!,
       patient: patient!,
       weight: weightController.text,
       problems: problemsController.text,
       bloodPressure: bpController.text,
       medicines: _getMedicineList(),
-      date: DateTime.now(),
-    );
-
-    await MakePdfService.generatePrescription(
-      doctor: prescription.doctor,
-      patient: prescription.patient,
-      weight: prescription.weight,
-      problems: prescription.problems,
-      bloodPressure: prescription.bloodPressure,
-      medicines: prescription.medicines,
     );
 
     isPdfGenerated = true;
-    isSubmitted = false;
     errorMessage = null;
-
     notifyListeners();
   }
 
   Future<bool> submitToServer() async {
-    if (doctor == null || patient == null) return false;
+    if (!_validateForm()) {
+      notifyListeners();
+      return false;
+    }
 
     isSubmitting = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      final Map<String, dynamic> body = {
+      final body = {
         "doctor": {
           "name": doctor!.name,
           "degree": doctor!.degree,
-          "hospital": doctor!.hospital,
-          "address": doctor!.address,
+          "specialist": doctor!.specialist,
+          "hospital": doctor!.institute,
           "phone": doctor!.phone,
         },
         "patient": {
           "name": patient!.name,
-          "patientId": patient!.patientId,
-          "age": patient!.age,
+          "nationalId": patient!.nationalId,
+          "age": patient!.dob != null
+              ? DateTime.now().year - patient!.dob!.year
+              : null,
           "weight": weightController.text,
         },
         "complaints": problemsController.text,
-        "diagnosis": bpController.text,
+        "bloodPressure": bpController.text,
         "medicines": _getMedicineList(),
         "date": DateTime.now().toIso8601String(),
       };
-      const String apiUrl = "https://your-server.com/api/prescriptions";
+
+      const apiUrl = "https://your-server.com/api/prescriptions";
 
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -121,9 +136,10 @@ class MakePrescriptionViewModel extends ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        isSubmitting = false;
         isSubmitted = true;
+        isSubmitting = false;
         errorMessage = null;
+        _clearForm();
         notifyListeners();
         return true;
       } else {
@@ -136,10 +152,18 @@ class MakePrescriptionViewModel extends ChangeNotifier {
     } catch (e) {
       isSubmitting = false;
       isSubmitted = false;
-      errorMessage = "Failed to submit: $e";
+      errorMessage = "Network error: $e";
       notifyListeners();
       return false;
     }
+  }
+
+  void _clearForm() {
+    weightController.clear();
+    problemsController.clear();
+    bpController.clear();
+    medicineController.clear();
+    isPdfGenerated = false;
   }
 
   @override

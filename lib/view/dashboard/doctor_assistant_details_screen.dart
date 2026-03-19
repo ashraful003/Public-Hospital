@@ -3,14 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:public_hospital/color/app_color.dart';
-import 'package:public_hospital/model/doctor_assistant_model.dart';
+import 'package:public_hospital/model/user_model.dart';
 import 'package:public_hospital/viewModel/dashboard/doctor_assistant_details_view_model.dart';
 import 'package:public_hospital/model/home_item_model.dart';
 import 'package:public_hospital/widgets/home_circle_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DoctorAssistantDetailsScreen extends StatelessWidget {
-  final DoctorAssistantModel assistant;
+  final UserModel assistant;
 
   const DoctorAssistantDetailsScreen({super.key, required this.assistant});
 
@@ -26,17 +26,27 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
       create: (_) => DoctorAssistantDetailsViewModel(assistant: assistant),
       child: Consumer<DoctorAssistantDetailsViewModel>(
         builder: (context, vm, _) {
-          final formattedDate = DateFormat(
-            'dd MMM yyyy',
-          ).format(vm.assistant.dob);
+          final formattedDate = vm.assistant.dob != null
+              ? DateFormat('dd MMM yyyy').format(vm.assistant.dob!)
+              : "N/A";
+
+          ImageProvider? _getImage() {
+            final img = vm.assistant.imageUrl;
+            if (img == null || img.isEmpty) return null;
+
+            if (img.startsWith("http")) {
+              return NetworkImage(img);
+            } else {
+              return AssetImage(img);
+            }
+          }
+
           return Scaffold(
             appBar: AppBar(
               backgroundColor: AppColors.blue_200,
-              title: const Text('Profile',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              title: const Text(
+                'Profile',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               centerTitle: true,
               automaticallyImplyLeading: !kIsWeb,
@@ -56,18 +66,15 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundImage:
-                            vm.assistant.imageUrl != null &&
-                                vm.assistant.imageUrl!.isNotEmpty
-                            ? NetworkImage(vm.assistant.imageUrl!)
-                            : const AssetImage(
-                                    'assets/assistant_placeholder.png',
-                                  )
-                                  as ImageProvider,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage: _getImage(),
+                        child: _getImage() == null
+                            ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                            : null,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        vm.assistant.name,
+                        vm.assistant.name ?? "Unknown",
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -75,7 +82,7 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'ID : ${vm.assistant.nationalId}',
+                        'ID : ${vm.assistant.nationalId ?? "N/A"}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -88,18 +95,14 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                           Icon(
                             Icons.circle,
                             size: 12,
-                            color: vm.assistant.isActive
-                                ? Colors.green
-                                : Colors.red,
+                            color: vm.assistant.isActive! ? Colors.green : Colors.red,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            vm.assistant.isActive ? 'Active' : 'Inactive',
+                            vm.assistant.isActive! ? 'Active' : 'Inactive',
                             style: TextStyle(
                               fontSize: 14,
-                              color: vm.assistant.isActive
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: vm.assistant.isActive! ? Colors.green : Colors.red,
                             ),
                           ),
                         ],
@@ -115,28 +118,28 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               _buildDetailsRow(
-                                icon: Icons.phone,
-                                value: vm.assistant.phone,
-                              ),
-                              _buildDetailsRow(
-                                icon: Icons.email,
-                                value: vm.assistant.email,
-                              ),
-                              _buildDetailsRow(
-                                icon: Icons.location_on,
-                                value: vm.assistant.address,
-                              ),
-                              _buildDetailsRow(
                                 icon: Icons.cake,
                                 value: formattedDate,
                               ),
                               _buildDetailsRow(
                                 icon: Icons.school,
-                                value: vm.assistant.institute,
+                                value: vm.assistant.institute ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.workspace_premium,
-                                value: vm.assistant.degree,
+                                value: vm.assistant.degree ?? "N/A",
+                              ),
+                              _buildDetailsRow(
+                                icon: Icons.email,
+                                value: vm.assistant.email ?? "N/A",
+                              ),
+                              _buildDetailsRow(
+                                icon: Icons.location_on,
+                                value: vm.assistant.address ?? "N/A",
+                              ),
+                              _buildDetailsRow(
+                                icon: Icons.phone,
+                                value: vm.assistant.phone ?? "N/A",
                               ),
                             ],
                           ),
@@ -159,21 +162,15 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                       circleSize: 60,
                       iconSize: 30,
                       onTap: () async {
-                        final phoneNumber = vm.assistant.phone;
-                        final Uri callUri = Uri(
-                          scheme: 'tel',
-                          path: phoneNumber,
-                        );
+                        final phoneNumber = vm.assistant.phone ?? '';
+                        if (phoneNumber.isEmpty) return;
 
+                        final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
                         if (await canLaunchUrl(callUri)) {
                           await launchUrl(callUri);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Cannot make a call to $phoneNumber',
-                              ),
-                            ),
+                            SnackBar(content: Text('Cannot call $phoneNumber')),
                           );
                         }
                       },
