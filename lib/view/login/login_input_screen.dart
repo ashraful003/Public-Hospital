@@ -118,7 +118,7 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => DashboardScreen(),
-                                    ), // Navigate to Home screen
+                                    ),
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(

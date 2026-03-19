@@ -65,70 +65,72 @@ class CleanerScreen extends StatelessWidget {
                         Expanded(
                           child: vm.cleaners.isEmpty
                               ? const Center(
-                            child: Text(
-                              'No Cleaner Found',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          )
+                                  child: Text(
+                                    'No Cleaner Found',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                )
                               : ListView.builder(
-                            itemCount: vm.cleaners.length,
-                            itemBuilder: (context, index) {
-                              final cleaner = vm.cleaners[index];
+                                  itemCount: vm.cleaners.length,
+                                  itemBuilder: (context, index) {
+                                    final cleaner = vm.cleaners[index];
+                                    ImageProvider? avatarImage;
+                                    if (cleaner.imageUrl != null &&
+                                        cleaner.imageUrl!.isNotEmpty) {
+                                      if (cleaner.imageUrl!.startsWith(
+                                        'http',
+                                      )) {
+                                        avatarImage = NetworkImage(
+                                          cleaner.imageUrl!,
+                                        );
+                                      } else {
+                                        avatarImage = AssetImage(
+                                          cleaner.imageUrl!,
+                                        );
+                                      }
+                                    }
 
-                              // Determine the image
-                              ImageProvider? avatarImage;
-                              if (cleaner.imageUrl != null &&
-                                  cleaner.imageUrl!.isNotEmpty) {
-                                if (cleaner.imageUrl!.startsWith('http')) {
-                                  avatarImage =
-                                      NetworkImage(cleaner.imageUrl!);
-                                } else {
-                                  avatarImage =
-                                      AssetImage(cleaner.imageUrl!);
-                                }
-                              }
-
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.grey.shade200,
-                                    backgroundImage: avatarImage,
-                                    child: avatarImage == null
-                                        ? const Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
-                                    )
-                                        : null,
-                                  ),
-                                  title: Text(
-                                    cleaner.name!,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    'National Id: ${cleaner.nationalId}',
-                                  ),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            CleanerDetailsScreen(
-                                              cleaner: cleaner,
+                                    return Card(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          radius: 25,
+                                          backgroundColor: Colors.grey.shade200,
+                                          backgroundImage: avatarImage,
+                                          child: avatarImage == null
+                                              ? const Icon(
+                                                  Icons.person,
+                                                  color: Colors.grey,
+                                                )
+                                              : null,
+                                        ),
+                                        title: Text(
+                                          cleaner.name!,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'National Id: ${cleaner.nationalId}',
+                                        ),
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  CleanerDetailsScreen(
+                                                    cleaner: cleaner,
+                                                  ),
                                             ),
+                                          );
+                                        },
                                       ),
                                     );
                                   },
                                 ),
-                              );
-                            },
-                          ),
                         ),
                       ],
                     ),

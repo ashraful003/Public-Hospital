@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewModel/dashboard/profile_view_model.dart';
@@ -13,7 +12,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = currentUser ??
+    final user =
+        currentUser ??
         UserModel(
           nationalId: '0123456789',
           name: "Ashraful Alam",
@@ -39,8 +39,6 @@ class ProfileScreen extends StatelessWidget {
             body: SafeArea(
               child: Column(
                 children: [
-
-                  /// HEADER
                   Container(
                     width: double.infinity,
                     color: Colors.white,
@@ -60,32 +58,35 @@ class ProfileScreen extends StatelessWidget {
 
                         Padding(
                           padding: const EdgeInsets.only(
-                              left: 16, right: 16, bottom: 16, top: 5),
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                            top: 5,
+                          ),
                           child: Row(
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
                                 child: vm.pickedImage != null
                                     ? Image.file(
-                                  vm.pickedImage!,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                )
+                                        vm.pickedImage!,
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      )
                                     : Image.asset(
-                                  vm.user.imageUrl ??
-                                      "assets/images/default_user.png",
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
+                                        vm.user.imageUrl ??
+                                            "assets/images/default_user.png",
+                                        width: 80,
+                                        height: 80,
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                               const SizedBox(width: 10),
 
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       vm.user.name ?? "",
@@ -107,8 +108,10 @@ class ProfileScreen extends StatelessWidget {
                               ),
 
                               IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios,
-                                    size: 18),
+                                icon: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 18,
+                                ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -128,7 +131,6 @@ class ProfileScreen extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  /// SETTINGS + NOTIFICATION
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Container(
@@ -147,8 +149,10 @@ class ProfileScreen extends StatelessWidget {
                           ListTile(
                             leading: const Icon(Icons.settings),
                             title: const Text("Settings"),
-                            trailing: const Icon(Icons.arrow_forward_ios,
-                                size: 16),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
                             onTap: () {
                               vm.toggleChangePassword();
                             },
@@ -160,13 +164,16 @@ class ProfileScreen extends StatelessWidget {
                                   leading: const Icon(Icons.lock_outline),
                                   title: const Text("Change Password"),
                                   trailing: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 16),
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                  ),
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => ChangeOldPasswordScreen(user: vm.user),
+                                        builder: (_) => ChangeOldPasswordScreen(
+                                          user: vm.user,
+                                        ),
                                       ),
                                     );
                                   },

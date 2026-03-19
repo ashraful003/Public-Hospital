@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/user_model.dart';
 import '../../viewModel/dashboard/change_old_password_view_model.dart';
+
 class ChangeOldPasswordScreen extends StatelessWidget {
   final UserModel user;
+
   const ChangeOldPasswordScreen({super.key, required this.user});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -13,8 +16,10 @@ class ChangeOldPasswordScreen extends StatelessWidget {
     );
   }
 }
+
 class _ChangeOldPasswordView extends StatelessWidget {
   const _ChangeOldPasswordView();
+
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<ChangeOldPasswordViewModel>(context);
@@ -35,9 +40,9 @@ class _ChangeOldPasswordView extends StatelessWidget {
                     labelText: "Old Password",
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      icon: Icon(vm.obscureOld
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(
+                        vm.obscureOld ? Icons.visibility_off : Icons.visibility,
+                      ),
                       onPressed: vm.toggleOld,
                     ),
                   ),
@@ -51,9 +56,9 @@ class _ChangeOldPasswordView extends StatelessWidget {
                     labelText: "New Password",
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      icon: Icon(vm.obscureNew
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(
+                        vm.obscureNew ? Icons.visibility_off : Icons.visibility,
+                      ),
                       onPressed: vm.toggleNew,
                     ),
                   ),
@@ -67,27 +72,34 @@ class _ChangeOldPasswordView extends StatelessWidget {
                     labelText: "Confirm Password",
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      icon: Icon(vm.obscureConfirm
-                          ? Icons.visibility_off
-                          : Icons.visibility),
+                      icon: Icon(
+                        vm.obscureConfirm
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
                       onPressed: vm.toggleConfirm,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 if (vm.errorMessage != null)
-                  Text(vm.errorMessage!,
-                      style: const TextStyle(color: Colors.red)),
+                  Text(
+                    vm.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 if (vm.successMessage != null)
-                  Text(vm.successMessage!,
-                      style: const TextStyle(color: Colors.green)),
+                  Text(
+                    vm.successMessage!,
+                    style: const TextStyle(color: Colors.green),
+                  ),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                      vm.isButtonEnabled ? Colors.blue : Colors.grey,
+                      backgroundColor: vm.isButtonEnabled
+                          ? Colors.blue
+                          : Colors.grey,
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -99,17 +111,14 @@ class _ChangeOldPasswordView extends StatelessWidget {
                         : null,
                     child: vm.isLoading
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                        : const Text(
-                      "Submit",
-                      style: TextStyle(fontSize: 16),
-                    ),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text("Submit", style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
