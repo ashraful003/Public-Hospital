@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:public_hospital/view/login/login_input_screen.dart';
 import '../../model/user_model.dart';
 import '../color/app_color.dart';
 import '../viewModel/change_password_view_model.dart';
@@ -93,8 +94,14 @@ class ChangePasswordScreen extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: vm.isButtonEnabled && !vm.isLoading
                             ? () async {
-                          await vm.changePassword(context);
-                        }
+                                await vm.changePassword(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const LoginInputScreen(),
+                                  ),
+                                );
+                              }
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: vm.isButtonEnabled && !vm.isLoading
@@ -106,20 +113,20 @@ class ChangePasswordScreen extends StatelessWidget {
                         ),
                         child: vm.isLoading
                             ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Text(
-                          'Submit',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.whiteColor,
-                          ),
-                        ),
+                                'Submit',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ),
                       ),
                     ),
                   ],

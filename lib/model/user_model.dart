@@ -24,13 +24,13 @@ class UserModel {
     this.phone,
     this.address,
     this.dob,
+    this.weight,
+    this.imageUrl,
     this.password,
     this.institute,
     this.degree,
     this.license,
     this.specialist,
-    this.weight,
-    this.imageUrl,
     this.isActive,
     this.role,
   });
@@ -70,14 +70,48 @@ class UserModel {
       role: role ?? this.role,
     );
   }
+
+  String? get roleValue {
+    switch (role) {
+      case UserRole.patient:
+        return "PATIENT";
+      case UserRole.doctor:
+        return "DOCTOR";
+      case UserRole.nurse:
+        return "NURSE";
+      case UserRole.doctorAssistant:
+        return "DOCTOR_ASSISTANT";
+      case UserRole.cleaner:
+        return "CLEANER";
+      default:
+        return null;
+    }
+  }
+
   Map<String, dynamic> toJson() {
     return {
+      "nationalId": nationalId,
+      "name": name,
       "email": email,
       "phone": phone,
+      "address": address,
+      "dob": dob != null
+          ? "${dob!.year}-${dob!.month.toString().padLeft(2, '0')}-${dob!.day.toString().padLeft(2, '0')}"
+          : null,
+      "password": password,
+      "weight": weight,
+      "imageUrl": imageUrl,
+      "institute": institute,
+      "degree": degree,
+      "license": license,
+      "specialist": specialist,
+      "isActive": isActive,
+      "role": roleValue,
     };
   }
+
   int? get age {
-    if (dob == null) return null; // handle nullable dob
+    if (dob == null) return null;
     final today = DateTime.now();
     int age = today.year - dob!.year;
 

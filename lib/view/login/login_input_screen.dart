@@ -113,18 +113,30 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                         child: ElevatedButton(
                           onPressed: vm.isButtonEnable
                               ? () async {
-                                  await vm.login();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => DashboardScreen(),
-                                    ),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Login Successful'),
-                                    ),
-                                  );
+                                  try {
+                                    final success = await vm.login();
+
+                                    if (success) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => DashboardScreen(),
+                                        ),
+                                      );
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Login Successful'),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(e.toString())),
+                                    );
+                                  }
                                 }
                               : null,
                           style: ElevatedButton.styleFrom(
