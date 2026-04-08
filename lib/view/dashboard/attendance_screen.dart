@@ -20,7 +20,7 @@ class AttendanceScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
         appBar: AppBar(
-          backgroundColor: AppColors.blue_200,
+          backgroundColor:AppColors.blue_200,
           title: const Text(
             "Attendance",
             style: TextStyle(
@@ -35,7 +35,6 @@ class AttendanceScreen extends StatelessWidget {
           builder: (context, vm, child) {
             return Column(
               children: [
-                /// Top Tabs
                 Container(
                   color: Colors.white,
                   child: Row(
@@ -70,8 +69,6 @@ class AttendanceScreen extends StatelessWidget {
                     onChanged: vm.searchByNationalId,
                   ),
                 ),
-
-                /// Main content
                 Expanded(
                   child: vm.selectedTab == AttendanceTab.list
                       ? ListView.builder(
@@ -218,8 +215,6 @@ class AttendanceScreen extends StatelessWidget {
     );
   }
 }
-
-/// Animated Checkout Popup
 class AnimatedCheckoutPopup extends StatefulWidget {
   final String staffName;
   const AnimatedCheckoutPopup({super.key, required this.staffName});

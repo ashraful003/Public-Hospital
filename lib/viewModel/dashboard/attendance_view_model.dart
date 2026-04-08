@@ -25,10 +25,8 @@ class AttendanceViewModel extends ChangeNotifier {
 
   void updateAttendanceList() {
     if (selectedTab == AttendanceTab.attendance) {
-      // Show all staff in attendance tab
       attendanceList = List.from(_allStaff);
     } else {
-      // List tab: only show checked-in staff
       attendanceList = _allStaff.where((e) => e.checkIn != null).toList();
     }
   }

@@ -31,25 +31,21 @@ class DoctorAssistantScreen extends StatelessWidget {
           automaticallyImplyLeading: false,
           title: const Text(
             'Doctor Assistant',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           leading: showBackButton
               ? IconButton(
-            onPressed: () {
-              Navigator.of(context).maybePop();
-            },
-            icon: const Icon(Icons.arrow_back),
-          )
+                  onPressed: () {
+                    Navigator.of(context).maybePop();
+                  },
+                  icon: const Icon(Icons.arrow_back),
+                )
               : null,
         ),
         body: Consumer<DoctorAssistantViewModel>(
           builder: (context, vm, child) {
             return Column(
               children: [
-                // Tabs
                 Container(
                   color: Colors.white,
                   child: Row(
@@ -67,14 +63,11 @@ class DoctorAssistantScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Search + List
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        // Search Field
                         TextField(
                           decoration: InputDecoration(
                             hintText: 'Search by National ID',
@@ -89,66 +82,66 @@ class DoctorAssistantScreen extends StatelessWidget {
                           onChanged: vm.searchByNationalId,
                         ),
                         const SizedBox(height: 20),
-
-                        // Assistant List
                         Expanded(
                           child: vm.assistants.isEmpty
                               ? const Center(
-                            child: Text(
-                              'No Assistant Found',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          )
+                                  child: Text(
+                                    'No Assistant Found',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                )
                               : ListView.builder(
-                            itemCount: vm.assistants.length,
-                            itemBuilder: (context, index) {
-                              final assistant = vm.assistants[index];
+                                  itemCount: vm.assistants.length,
+                                  itemBuilder: (context, index) {
+                                    final assistant = vm.assistants[index];
 
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.grey.shade200,
-                                    backgroundImage: assistant.imageUrl != null &&
-                                        assistant.imageUrl!.isNotEmpty
-                                        ? AssetImage(assistant.imageUrl!)
-                                    as ImageProvider
-                                        : null,
-                                    child: assistant.imageUrl == null ||
-                                        assistant.imageUrl!.isEmpty
-                                        ? const Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
-                                    )
-                                        : null,
-                                  ),
-                                  title: Text(
-                                    assistant.name!,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    'National ID: ${assistant.nationalId}',
-                                  ),
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            DoctorAssistantDetailsScreen(
-                                              assistant: assistant,
+                                    return Card(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          radius: 25,
+                                          backgroundColor: Colors.grey.shade200,
+                                          backgroundImage:
+                                              assistant.imageUrl != null &&
+                                                  assistant.imageUrl!.isNotEmpty
+                                              ? AssetImage(assistant.imageUrl!)
+                                                    as ImageProvider
+                                              : null,
+                                          child:
+                                              assistant.imageUrl == null ||
+                                                  assistant.imageUrl!.isEmpty
+                                              ? const Icon(
+                                                  Icons.person,
+                                                  color: Colors.grey,
+                                                )
+                                              : null,
+                                        ),
+                                        title: Text(
+                                          assistant.name!,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'National ID: ${assistant.nationalId}',
+                                        ),
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  DoctorAssistantDetailsScreen(
+                                                    assistant: assistant,
+                                                  ),
                                             ),
+                                          );
+                                        },
                                       ),
                                     );
                                   },
                                 ),
-                              );
-                            },
-                          ),
                         ),
                       ],
                     ),

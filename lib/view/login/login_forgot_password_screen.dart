@@ -44,17 +44,17 @@ class LoginForgotPasswordScreen extends StatelessWidget {
                     const SizedBox(height: 10),
 
                     const Text(
-                      'Enter your email or phone number to receive OTP',
+                      'Enter your email to receive OTP',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
 
                     const SizedBox(height: 40),
                     TextField(
-                      controller: vm.inputController,
+                      controller: vm.emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: "Email or Phone",
-                        prefixIcon: const Icon(Icons.person),
+                        labelText: "Email",
+                        prefixIcon: const Icon(Icons.email),
                         errorText: vm.errorMessage,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),

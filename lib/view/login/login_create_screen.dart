@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:public_hospital/color/app_color.dart';
 import 'package:public_hospital/view/login/login_input_screen.dart';
 import 'package:public_hospital/viewModel/sign_up_view_model.dart';
-import 'package:public_hospital/model/user_model.dart';
 
 class LoginCreateScreen extends StatelessWidget {
   const LoginCreateScreen({super.key});
@@ -117,27 +116,23 @@ class LoginCreateScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: vm.isButtonEnable
-                            ? () {
-                                UserModel newUser = vm.createUser();
-                                debugPrint("User Created");
-                                debugPrint("Name: ${newUser.name}");
-                                debugPrint("NID: ${newUser.nationalId}");
-                                debugPrint("Email: ${newUser.email}");
-                                debugPrint("Age: ${newUser.age}");
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Account Created Successfully",
+                        onPressed: vm.isButtonEnable && !vm.isLoading
+                            ? () async {
+                                final success = await vm.registerUser(context);
+
+                                if (success) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const LoginInputScreen(),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               }
                             : null,
                         style: ElevatedButton.styleFrom(
@@ -148,13 +143,22 @@ class LoginCreateScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
-                          "Sign Up",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.whiteColor,
-                          ),
-                        ),
+                        child: vm.isLoading
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.whiteColor,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 20),

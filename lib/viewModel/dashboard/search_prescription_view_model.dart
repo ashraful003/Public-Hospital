@@ -31,7 +31,7 @@ class SearchPrescriptionViewModel extends ChangeNotifier {
       context,
       MaterialPageRoute(
         builder: (_) => PrescriptionScreen(
-          patientId: patientId, // ✅ now supported
+          patientId: patientId,
         ),
       ),
     );

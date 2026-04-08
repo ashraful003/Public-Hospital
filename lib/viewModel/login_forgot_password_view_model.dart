@@ -1,61 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:public_hospital/model/user_model.dart';
+import '../model/user_model.dart';
+import '../service/auth_service.dart';
+
 class LoginForgotPasswordViewModel extends ChangeNotifier {
-  final TextEditingController inputController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool isButtonEnabled = false;
   bool isLoading = false;
   String? errorMessage;
+
   LoginForgotPasswordViewModel() {
-    _addListener();
+    emailController.addListener(_validateForm);
   }
-  void _addListener() {
-    inputController.addListener(_validateForm);
-  }
-  bool get isEmail {
-    final text = inputController.text.trim();
-    return text.contains("@");
-  }
+
   void _validateForm() {
-    final text = inputController.text.trim();
-    bool isValid = false;
-    if (text.isEmpty) {
+    final email = emailController.text.trim();
+    if (email.isEmpty) {
       errorMessage = null;
-    } else if (isEmail) {
-      isValid = text.contains(".");
-      errorMessage = isValid ? null : "Enter valid email";
+      isButtonEnabled = false;
+    } else if (!email.contains("@") || !email.contains(".")) {
+      errorMessage = "Enter valid email";
+      isButtonEnabled = false;
     } else {
-      isValid = text.length >= 10;
-      errorMessage = isValid ? null : "Enter valid phone number";
+      errorMessage = null;
+      isButtonEnabled = true;
     }
-    isButtonEnabled = isValid;
     notifyListeners();
   }
+
   Future<UserModel?> sendOtp(BuildContext context) async {
     if (!isButtonEnabled) return null;
     isLoading = true;
     notifyListeners();
     try {
-      final user = UserModel(
-        email: isEmail ? inputController.text.trim() : null,
-        phone: !isEmail ? inputController.text.trim() : null,
-      );
-      await Future.delayed(const Duration(seconds: 2));
-      debugPrint("OTP sent to: ${user.toJson()}");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("OTP sent successfully")),
-      );
-      return user;
+      final email = emailController.text.trim();
+      final message = await _authService.sendOtpEmail(email);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      return UserModel(email: email);
     } catch (e) {
-      errorMessage = "Failed to send OTP";
+      errorMessage = e.toString();
+      notifyListeners();
       return null;
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
+
   @override
   void dispose() {
-    inputController.dispose();
+    emailController.dispose();
     super.dispose();
   }
 }

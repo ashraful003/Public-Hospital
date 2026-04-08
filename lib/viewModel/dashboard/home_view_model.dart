@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:public_hospital/model/home_item_model.dart';
+import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
 import 'package:public_hospital/view/dashboard/staff_screen.dart';
 import '../../view/dashboard/admission_screen.dart';
 import '../../view/dashboard/appointment_screen.dart';
@@ -100,6 +101,13 @@ class HomeViewModel extends ChangeNotifier {
         MaterialPageRoute(
           builder: (_) => const StaffScreen(),
         ),
+      );
+      return;
+    }
+    if (item.title == "Blood Bank") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const BloodBankScreen()),
       );
       return;
     }
