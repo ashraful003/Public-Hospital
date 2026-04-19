@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:public_hospital/data/shared_pref_service.dart';
 import '../model/user_model.dart';
 import 'api_config.dart';
 import 'package:public_hospital/service/api_client.dart';
@@ -38,9 +39,15 @@ class AuthService {
         "email": email,
         "password": password,
       });
+
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        await SharedPrefService.saveLogin(
+          token: data["accessToken"],
+          role: data["role"],
+        );
+
         return data;
       } else {
         throw data["message"] ?? "Invalid email or password";
@@ -89,6 +96,36 @@ class AuthService {
       }
     } catch (e) {
       throw "Verification failed: $e";
+    }
+  }
+
+  static Future<String> changeOldPassword({
+    required String email,
+    required String password,
+    required String newPassword,
+  }) async {
+    final token = SharedPrefService.getToken();
+
+    final url = Uri.parse("${ApiConfig.baseUrl}/change-old-password");
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "email": email,
+        "oldPassword": password,
+        "newPassword": newPassword,
+      }),
+    );
+    final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+
+    if (response.statusCode == 200) {
+      return data["message"] ?? "Password changed successfully";
+    } else {
+      throw Exception(data["message"] ?? "Something went wrong");
     }
   }
 }

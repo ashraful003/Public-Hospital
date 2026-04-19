@@ -5,7 +5,6 @@ import 'package:public_hospital/color/app_color.dart';
 import 'package:public_hospital/view/login/login_create_screen.dart';
 import 'package:public_hospital/view/login/login_forgot_password_screen.dart';
 import 'package:public_hospital/viewModel/login_input_view_model.dart';
-
 import '../dashboard/dashboard_screen.dart';
 
 class LoginInputScreen extends StatefulWidget {
@@ -32,11 +31,13 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 25),
+
                       Image.asset(
                         'assets/images/logo.png',
                         height: 150,
                         width: 150,
                       ),
+
                       const Text(
                         'Public Hospital',
                         style: TextStyle(
@@ -44,21 +45,23 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       const SizedBox(height: 10),
+
                       const Text(
                         'This is a placeholder text',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.normal,
-                        ),
+                        style: TextStyle(fontSize: 15),
                       ),
+
                       const SizedBox(height: 50),
+
                       _buildfield(
                         controller: vm.emailController,
                         label: 'Email',
                         icon: Icons.email,
                         keyboardType: TextInputType.emailAddress,
                       ),
+
                       TextField(
                         controller: vm.passwordController,
                         obscureText: !vm.isPasswordVisible,
@@ -94,8 +97,7 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      LoginForgotPasswordScreen(),
+                                  builder: (_) => LoginForgotPasswordScreen(),
                                 ),
                               );
                             },
@@ -106,7 +108,9 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 15),
+
                       SizedBox(
                         width: double.infinity,
                         height: 55,
@@ -114,21 +118,14 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                           onPressed: vm.isButtonEnable
                               ? () async {
                                   try {
-                                    final success = await vm.login();
+                                    final role = await vm.login();
 
-                                    if (success) {
+                                    if (role != null && context.mounted) {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => DashboardScreen(),
-                                        ),
-                                      );
-
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Login Successful'),
+                                          builder: (_) =>
+                                              const DashboardScreen(),
                                         ),
                                       );
                                     }
@@ -144,19 +141,25 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                                 ? AppColors.blue_200
                                 : AppColors.whiteColor_100,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadiusGeometry.circular(10),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                            'Sign In',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.whiteColor,
-                            ),
-                          ),
+                          child: vm.isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'Sign In',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.whiteColor,
+                                  ),
+                                ),
                         ),
                       ),
+
                       const SizedBox(height: 20),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -167,8 +170,7 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const LoginCreateScreen(),
+                                  builder: (_) => const LoginCreateScreen(),
                                 ),
                               );
                             },
@@ -193,21 +195,17 @@ class _LoginInputScreenState extends State<LoginInputScreen> {
     );
   }
 
-  _buildfield({
+  Widget _buildfield({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
-    bool readOnly = false,
-    VoidCallback? onTop,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
-        readOnly: readOnly,
-        onTap: onTop,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),

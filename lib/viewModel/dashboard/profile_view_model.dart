@@ -1,117 +1,167 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/shared_pref_service.dart';
 import '../../model/user_model.dart';
+import '../../service/api_client.dart';
+import '../../service/api_config.dart';
 import '../../view/login/login_input_screen.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  bool showChangePassword = false;
-  UserModel _user;
+  UserModel? _user;
   File? _pickedImage;
-  int selectedIndex = 2;
+  bool isLoading = false;
+  bool showChangePassword = false;
 
-  ProfileViewModel({required UserModel user}) : _user = user;
+  UserModel? get user => _user;
 
-  UserModel get user => _user;
   File? get pickedImage => _pickedImage;
 
-  void changeTab(int index) {
-    selectedIndex = index;
-    notifyListeners();
-  }
-  void toggleChangePassword() {
-    showChangePassword = !showChangePassword;
-    notifyListeners();
-  }
-  Future<void> logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginInputScreen()),
-          (route) => false,
-    );
-  }
-
-  void updateUser({
-    String? name,
-    String? email,
-    String? phone,
-    String? address,
-    DateTime? dob,
-    String? password,
-    String? weight,
-    String? imagePath,
-    String? degree,
-    String? institute,
-    String? specialist,
-    String? license,
-  }) {
-    _user = _user.copyWith(
-      name: name,
-      email: email,
-      phone: phone,
-      address: address,
-      dob: dob,
-      password: password,
-      weight: weight,
-      imageUrl: imagePath,
-      degree: degree,
-      institute: institute,
-      specialist: specialist,
-      license: license,
-    );
+  void setUser(UserModel user) {
+    _user = user;
     notifyListeners();
   }
 
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      _pickedImage = File(pickedFile.path);
+  Future<void> loadProfile(String dashboardRole) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      final email = SharedPrefService.getString("remember_email");
+      if (email == null || email.isEmpty) {
+        throw Exception("Email not found in SharedPreferences");
+      }
+      if (dashboardRole.isEmpty) {
+        throw Exception("Role not found");
+      }
+      final url =
+          "${ApiConfig.baseUrl}/profile?email=$email&role=$dashboardRole";
+      final response = await ApiClient.get(url);
+      final json = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        _user = UserModel.fromJson(json);
+      } else {
+        throw Exception(json["message"] ?? "Failed to load profile");
+      }
+    } catch (e) {
+      debugPrint("Load Profile Error: $e");
+    } finally {
+      isLoading = false;
       notifyListeners();
     }
   }
 
-  List<String> get visibleFields {
-    switch (_user.role) {
-      case UserRole.doctor:
-        return ['nationalId','name','email','phone','address','weight','dob','degree','institute','specialist','license','imageUrl'];
-      case UserRole.nurse:
-        return ['nationalId','name','email','phone','address','weight','dob','degree','institute','license','imageUrl'];
-      case UserRole.patient:
-        return ['nationalId','name','email','phone','address','weight','dob','degree','institute','imageUrl'];
-      case UserRole.doctorAssistant:
-        return ['nationalId','name','email','phone','address','weight','dob','degree','institute','imageUrl'];
-      case UserRole.cleaner:
-        return ['nationalId','name','email','phone','address','weight','dob','degree','institute','imageUrl'];
-      default:
-        return ['nationalId','name','email','phone','address','weight','dob','imageUrl'];
+  Future<bool> updateProfile({
+    required String email,
+    required String name,
+    required String phone,
+    required String address,
+    required String weight,
+    required String license,
+    required String degree,
+    required String institute,
+    required String specialist,
+    required String dob,
+  }) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      final url = Uri.parse("${ApiConfig.baseUrl}/update-profile");
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "email": email,
+          "name": name,
+          "phone": phone,
+          "address": address,
+          "weight": weight,
+          "license": license,
+          "degree": degree,
+          "institute": institute,
+          "specialist": specialist,
+          "dob": formatDob(dob),
+        }),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      debugPrint("Update Error: $e");
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
   }
 
-  bool isEditable(String field) {
-    if (field == 'nationalId' || field == 'license') return false;
-    return true;
+  Future<String?> uploadProfileImage({
+    required String email,
+    required File imageFile,
+  }) async {
+    try {
+      var uri = Uri.parse("${ApiConfig.baseUrl}/update-profile-image");
+      var request = http.MultipartRequest("PUT", uri);
+      request.fields['email'] = email;
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
+      var response = await request.send();
+      final resBody = await response.stream.bytesToString();
+      if (response.statusCode != 200) {
+        throw Exception(resBody);
+      }
+      final data = jsonDecode(resBody);
+      debugPrint("Upload Success: $data");
+      return data["imageUrl"];
+    } catch (e) {
+      debugPrint("Upload Error: $e");
+      return null;
+    }
   }
 
-  String getFieldValue(String field) {
-    switch (field) {
-      case 'nationalId': return _user.nationalId ?? '';
-      case 'name': return _user.name ?? '';
-      case 'email': return _user.email ?? '';
-      case 'phone': return _user.phone ?? '';
-      case 'address': return _user.address ?? '';
-      case 'weight': return _user.weight ?? '';
-      case 'dob': return _user.dob != null ? "${_user.dob!.day}-${_user.dob!.month}-${_user.dob!.year}" : '';
-      case 'degree': return _user.degree ?? '';
-      case 'institute': return _user.institute ?? '';
-      case 'specialist': return _user.specialist ?? '';
-      case 'license': return _user.license ?? '';
-      case 'imageUrl': return _user.imageUrl ?? '';
-      default: return '';
+  Future<void> pickImageAndUpload(String email) async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+    if (picked == null) return;
+    _pickedImage = File(picked.path);
+    notifyListeners();
+    final imageUrl = await uploadProfileImage(
+      email: email,
+      imageFile: _pickedImage!,
+    );
+    if (imageUrl != null) {
+      _user = _user?.copyWith(imageUrl: imageUrl);
+    }
+    notifyListeners();
+  }
+
+  void toggleChangePassword() {
+    showChangePassword = !showChangePassword;
+    notifyListeners();
+  }
+
+  Future<void> logout(BuildContext context) async {
+    await SharedPrefService.clear();
+    if (!context.mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginInputScreen()),
+      (route) => false,
+    );
+  }
+
+  String formatDob(String input) {
+    try {
+      final parts = input.split("/");
+      return "${parts[2]}-${parts[1]}-${parts[0]}";
+    } catch (e) {
+      return input;
     }
   }
 }

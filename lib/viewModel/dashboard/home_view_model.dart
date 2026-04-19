@@ -1,37 +1,228 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:public_hospital/model/home_item_model.dart';
-import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
-import 'package:public_hospital/view/dashboard/staff_screen.dart';
+import '../../model/home_item_model.dart';
 import '../../view/dashboard/admission_screen.dart';
 import '../../view/dashboard/appointment_screen.dart';
+import '../../view/dashboard/blood_donor_screen.dart';
 import '../../view/dashboard/search_prescription_screen.dart';
+import '../../view/dashboard/staff_screen.dart';
 
 class HomeSection {
-  final String title;
   final List<HomeItemModel> items;
-  HomeSection({required this.title, required this.items});
+
+  HomeSection({required this.items});
 }
 
 class HomeViewModel extends ChangeNotifier {
+  final String role;
 
-  final List<HomeItemModel> topItems = [
-    HomeItemModel(
-      title: "Appointment",
-      icon: Icons.event_note,
-      bgColor: Colors.blue,
-    ),
-    HomeItemModel(
-      title: "Admission",
-      icon: Icons.person_add,
-      bgColor: Colors.blue,
-    ),
-    HomeItemModel(
-      title: "Emergency",
-      icon: Icons.call,
-      bgColor: Colors.red,
-    ),
-  ];
+  HomeViewModel(this.role) {
+    _init();
+  }
+
+  final Map<String, List<String>> roleAccess = {
+    "admin": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Diagnostic\nCenter",
+      "Medicine\nCompany",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "patient": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+    ],
+    "doctor": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Discharge",
+      "Meals",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "nurse": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "doctor_assistant": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "cleaner": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "accountant": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Facility",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "pharmacist": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Facility",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "receptionist": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "driver": [
+      "Appointment",
+      "Admission",
+      "Emergency",
+      "Prescription",
+      "Report",
+      "Bill Status",
+      "Bill Settlement",
+      "Discharge",
+      "Meals",
+      "Health\nDeclaration",
+      "Facility",
+      "Blood Bank",
+      "Ambulance",
+      "Booking",
+      "Medicine\nStore",
+      "Parking",
+      "Staff",
+    ],
+    "pharmaceutical": [
+      "Emergency",
+      "Facility",
+      "Medicine\nCompany",
+      "Medicine\nStore",
+      "Parking",
+    ],
+    "diagnosticCenter": ["Emergency", "Report", "Facility", "Parking"],
+  };
+
+  List<HomeItemModel> get topItems {
+    final items = [
+      HomeItemModel(
+        title: "Appointment",
+        icon: Icons.event_note,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Admission",
+        icon: Icons.person_add,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(title: "Emergency", icon: Icons.call, bgColor: Colors.red),
+    ];
+    return _filterItems(items);
+  }
 
   final HomeItemModel staffButton = HomeItemModel(
     title: "Staff",
@@ -39,86 +230,135 @@ class HomeViewModel extends ChangeNotifier {
     bgColor: Colors.deepPurple,
   );
 
-  late final List<HomeSection> sections = [
+  bool get showStaffButton => roleAccess[role]?.contains("Staff") ?? false;
+  late List<HomeSection> sections;
 
-    HomeSection(
-      title: "Patient",
-      items: [
-        HomeItemModel(title: "Prescription", icon: Icons.receipt, bgColor: Colors.blue),
-        HomeItemModel(title: "Report", icon: Icons.assignment, bgColor: Colors.blue),
-        HomeItemModel(title: "Bill Status", icon: Icons.description, bgColor: Colors.blue),
-        HomeItemModel(title: "Bill Settlement", icon: Icons.request_page, bgColor: Colors.blue),
-        HomeItemModel(title: "Discharge", icon: Icons.accessible, bgColor: Colors.blue),
-        HomeItemModel(title: "Emergency", icon: Icons.access_time, bgColor: Colors.red),
-        HomeItemModel(title: "Meals", icon: Icons.restaurant, bgColor: Colors.blue),
-        HomeItemModel(title: "Health\nDeclaration", icon: Icons.checklist, bgColor: Colors.blue),
-      ],
-    ),
+  void _init() {
+    sections = [HomeSection(items: _filterItems(_allItems()))];
+  }
 
-    HomeSection(
-      title: "Service",
-      items: [
-        HomeItemModel(title: "Facility", icon: Icons.local_hospital, bgColor: Colors.blue),
-        HomeItemModel(title: "Blood Bank", icon: Icons.bloodtype, bgColor: Colors.blue),
-        HomeItemModel(title: "Ambulance", icon: Icons.local_taxi, bgColor: Colors.blue),
-        HomeItemModel(title: "Booking", icon: Icons.bed, bgColor: Colors.blue),
-        HomeItemModel(title: "Diagnostic\nCenter", icon: Icons.apartment, bgColor: Colors.blue),
-        HomeItemModel(title: "Medicine\nCompany", icon: Icons.medical_services, bgColor: Colors.blue),
-        HomeItemModel(title: "Medicine\nStore", icon: Icons.store, bgColor: Colors.blue),
-        HomeItemModel(title: "Parking", icon: Icons.local_parking, bgColor: Colors.blue),
-      ],
-    ),
-  ];
+  List<HomeItemModel> _allItems() {
+    return [
+      HomeItemModel(
+        title: "Prescription",
+        icon: Icons.receipt,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Report",
+        icon: Icons.assignment,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Bill Status",
+        icon: Icons.description,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Bill Settlement",
+        icon: Icons.request_page,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Discharge",
+        icon: Icons.accessible,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Emergency",
+        icon: Icons.access_time,
+        bgColor: Colors.red,
+      ),
+      HomeItemModel(
+        title: "Meals",
+        icon: Icons.restaurant,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Health\nDeclaration",
+        icon: Icons.checklist,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Facility",
+        icon: Icons.local_hospital,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Blood Bank",
+        icon: Icons.bloodtype,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Ambulance",
+        icon: Icons.local_taxi,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(title: "Booking", icon: Icons.bed, bgColor: Colors.blue),
+      HomeItemModel(
+        title: "Diagnostic\nCenter",
+        icon: Icons.apartment,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Medicine\nCompany",
+        icon: Icons.medical_services,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Medicine\nStore",
+        icon: Icons.store,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Parking",
+        icon: Icons.local_parking,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Staff",
+        icon: Icons.groups,
+        bgColor: Colors.deepPurple,
+      ),
+    ];
+  }
+
+  List<HomeItemModel> _filterItems(List<HomeItemModel> items) {
+    final allowed = roleAccess[role] ?? [];
+    return items.where((item) => allowed.contains(item.title)).toList();
+  }
 
   void onItemTap(BuildContext context, HomeItemModel item) {
+    switch (item.title) {
+      case "Appointment":
+        _navigate(context, const AppointmentScreen());
+        break;
+      case "Admission":
+        _navigate(context, AdmissionScreen(role: role));
+        break;
+      case "Prescription":
+        _navigate(context, const SearchPrescriptionScreen());
+        break;
+      case "Staff":
+        _navigate(context, const StaffScreen());
+        break;
+      case "Blood Bank":
+        _navigate(context, const BloodBankScreen());
+        break;
+      default:
+        _showToast(item.title);
+    }
+  }
 
-    if (item.title == "Appointment") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AppointmentScreen()),
-      );
-      return;
-    }
+  void _navigate(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
 
-    if (item.title == "Admission") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AdmissionScreen()),
-      );
-      return;
-    }
-
-    if (item.title == "Prescription") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SearchPrescriptionScreen()),
-      );
-      return;
-    }
-    if (item.title == "Staff") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const StaffScreen(),
-        ),
-      );
-      return;
-    }
-    if (item.title == "Blood Bank") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const BloodBankScreen()),
-      );
-      return;
-    }
-
+  void _showToast(String message) {
     Fluttertoast.showToast(
-      msg: item.title.replaceAll("\n", " "),
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
+      msg: message.replaceAll("\n", " "),
       backgroundColor: Colors.black87,
       textColor: Colors.white,
-      fontSize: 14.0,
     );
   }
 }

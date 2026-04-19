@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:public_hospital/service/auth_service.dart';
+import '../../data/shared_pref_service.dart';
 import '../../model/user_model.dart';
 
 class ChangeOldPasswordViewModel extends ChangeNotifier {
@@ -26,7 +28,6 @@ class ChangeOldPasswordViewModel extends ChangeNotifier {
     final oldPass = oldPasswordController.text.trim();
     final newPass = newPasswordController.text.trim();
     final confirmPass = confirmPasswordController.text.trim();
-
     isButtonEnabled =
         oldPass.isNotEmpty &&
         newPass.isNotEmpty &&
@@ -51,34 +52,48 @@ class ChangeOldPasswordViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> changePassword(BuildContext context) async {
+  Future<void> changeOldPassword(BuildContext context) async {
     if (!formKey.currentState!.validate()) return;
-
-    final oldPassword = oldPasswordController.text.trim();
+    final inputOldPassword = oldPasswordController.text.trim();
     final newPassword = newPasswordController.text.trim();
-    if (oldPassword != user.password) {
+    final savedEmail = SharedPrefService.getRememberEmail();
+    final savedPassword = SharedPrefService.getRememberPassword();
+    if (savedEmail == null || savedPassword == null) {
+      errorMessage = "Session expired. Please login again.";
+      notifyListeners();
+      return;
+    }
+    if (inputOldPassword != savedPassword) {
       errorMessage = "Old password is incorrect";
       notifyListeners();
       return;
     }
-    isLoading = true;
-    errorMessage = null;
-    successMessage = null;
-    notifyListeners();
-    await Future.delayed(const Duration(seconds: 2));
-    final updatedUser = user.copyWith(password: newPassword);
-    isLoading = false;
-    successMessage = "Password changed successfully!";
-    notifyListeners();
-    debugPrint("Updated Password: ${updatedUser.password}");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Password changed successfully"),
-        backgroundColor: Colors.green,
-      ),
-    );
-    await Future.delayed(const Duration(milliseconds: 500));
-    Navigator.pop(context);
+    try {
+      isLoading = true;
+      errorMessage = null;
+      successMessage = null;
+      notifyListeners();
+      final message = await AuthService.changeOldPassword(
+        email: savedEmail,
+        password: inputOldPassword,
+        newPassword: newPassword,
+      );
+      await SharedPrefService.saveRememberMe(
+        email: savedEmail,
+        password: newPassword,
+      );
+      isLoading = false;
+      successMessage = message;
+      notifyListeners();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      isLoading = false;
+      errorMessage = e.toString().replaceAll("Exception: ", "");
+      notifyListeners();
+    }
   }
 
   String? validateOld(String? value) {
