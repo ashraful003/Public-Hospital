@@ -7,7 +7,9 @@ import 'package:public_hospital/viewModel/dashboard/home_view_model.dart';
 import 'package:public_hospital/widgets/home_circle_item.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final String role;
+
+  const HomeScreen({super.key, required this.role});
 
   double _horizontalPadding(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -18,34 +20,21 @@ class HomeScreen extends StatelessWidget {
   }
 
   int _gridCount(BuildContext context, int itemLength) {
-    double width = MediaQuery.of(context).size.width;
-    if (width < 600) return 4;
-    if (width < 900) return 6;
-    double padding = _horizontalPadding(context);
-    double availableWidth = width - (padding * 2);
-    const double itemWidth = 100;
-    int count = (availableWidth / itemWidth).floor();
-    if (count <= 0) count = 1;
-    if (count > itemLength) {
-      count = itemLength;
+    final width = MediaQuery.of(context).size.width;
+    if (itemLength == 0) return 1;
+    if (width < 600) {
+      return min(4, itemLength);
     }
-    return count;
-  }
-
-  double _calculateItemWidth(BuildContext context, int itemLength) {
-    double padding = _horizontalPadding(context);
-    double width = MediaQuery.of(context).size.width;
-    int crossAxisCount = _gridCount(context, itemLength);
-    double totalSpacing = (crossAxisCount - 1) * 12;
-    double availableWidth = width - (padding * 2) - totalSpacing;
-    availableWidth = max(availableWidth, crossAxisCount * 80);
-    return availableWidth / crossAxisCount;
+    if (width < 900) {
+      return min(6, itemLength);
+    }
+    return min(8, itemLength);
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => HomeViewModel(),
+      create: (_) => HomeViewModel(role.toLowerCase()),
       child: Scaffold(
         drawer: const DrawerLayout(),
         backgroundColor: const Color(0xffF2F3F7),
@@ -62,21 +51,28 @@ class HomeScreen extends StatelessWidget {
                     _buildHeader(context, padding),
                     const SizedBox(height: 8),
                     _buildTopItems(context, vm, padding),
+                    const SizedBox(height: 28),
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: vm.sections.map((section) {
-                            return Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: padding,
+                      child:
+                          vm.sections.isEmpty || vm.sections.first.items.isEmpty
+                          ? const Center(child: Text("No data available"))
+                          : SingleChildScrollView(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: Column(
+                                children: vm.sections.map((section) {
+                                  return Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: padding,
+                                    ),
+                                    child: _gridSection(
+                                      section.items,
+                                      vm,
+                                      context,
+                                    ),
+                                  );
+                                }).toList(),
                               ),
-                              child: _buildSection(section, vm, context),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                            ),
                     ),
                   ],
                 ),
@@ -147,39 +143,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(
-    dynamic section,
-    HomeViewModel vm,
-    BuildContext context,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionTitle(section.title),
-        _gridSection(section.items, vm, context),
-        if (section.title == "Service") ...[
-          const SizedBox(height: 16),
-          _buildResponsiveStaffButton(context, vm),
-        ],
-      ],
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: AppColors.blue100,
-        ),
-      ),
-    );
-  }
-
   Widget _gridSection(List items, HomeViewModel vm, BuildContext context) {
+    if (items.isEmpty) {
+      return const Center(child: Text("No items"));
+    }
     return GridView.builder(
       itemCount: items.length,
       shrinkWrap: true,
@@ -197,24 +164,6 @@ class HomeScreen extends StatelessWidget {
           onTap: () => vm.onItemTap(context, items[index]),
         );
       },
-    );
-  }
-
-  Widget _buildResponsiveStaffButton(BuildContext context, HomeViewModel vm) {
-    double itemWidth = _calculateItemWidth(context, 8);
-
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        SizedBox(
-          width: itemWidth > 0 ? itemWidth : 80,
-          child: HomeCircleItem(
-            item: vm.staffButton,
-            onTap: () => vm.onItemTap(context, vm.staffButton),
-          ),
-        ),
-      ],
     );
   }
 }

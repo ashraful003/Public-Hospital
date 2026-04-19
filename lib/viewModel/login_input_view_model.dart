@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../data/shared_pref_service.dart';
-import '../utils/pref_keys.dart';
 import '../service/auth_service.dart';
+import '../utils/pref_keys.dart';
 
 class LoginInputViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -12,6 +12,7 @@ class LoginInputViewModel extends ChangeNotifier {
   bool rememberMe = false;
   bool isButtonEnable = false;
   bool isLoading = false;
+  String? userRole;
 
   LoginInputViewModel() {
     _addListener();
@@ -26,7 +27,8 @@ class LoginInputViewModel extends ChangeNotifier {
   void _validateForm() {
     final isValid =
         emailController.text.trim().isNotEmpty &&
-        passwordController.text.trim().isNotEmpty;
+            passwordController.text.trim().isNotEmpty &&
+            rememberMe;
 
     if (isButtonEnable != isValid) {
       isButtonEnable = isValid;
@@ -41,19 +43,18 @@ class LoginInputViewModel extends ChangeNotifier {
 
   void toggleRememberMe(bool? value) {
     rememberMe = value ?? false;
+    _validateForm();
     notifyListeners();
   }
 
-  Future<void> _loadRememberMe() async {
-    final savedEmail = await SharedPrefService.getString(
-      PrefKeys.rememberEmail,
-    );
-    final savedPassword = await SharedPrefService.getString(
+  void _loadRememberMe() {
+    final savedEmail = SharedPrefService.getString(PrefKeys.rememberEmail);
+    final savedPassword = SharedPrefService.getString(
       PrefKeys.rememberPassword,
     );
     if (savedEmail != null &&
-        savedEmail.isNotEmpty &&
         savedPassword != null &&
+        savedEmail.isNotEmpty &&
         savedPassword.isNotEmpty) {
       emailController.text = savedEmail;
       passwordController.text = savedPassword;
@@ -62,45 +63,65 @@ class LoginInputViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> login() async {
-    if (!isButtonEnable || isLoading) return false;
+  Future<String?> login() async {
+    if (!isButtonEnable || isLoading) return null;
+
     isLoading = true;
     notifyListeners();
+
     try {
+      final email = emailController.text.trim();
+      final password = passwordController.text.trim();
+
       final response = await _authService.login(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        email: email,
+        password: password,
       );
-      final token = response["token"] ?? response["accessToken"];
-      if (token == null || token.isEmpty) {
-        throw Exception("Token not found in response");
+
+      final token = response["accessToken"] ?? response["token"];
+      if (token == null || token.toString().isEmpty) {
+        throw Exception("Token not found");
       }
-      await SharedPrefService.setString(PrefKeys.token, token);
-      await SharedPrefService.setBool(PrefKeys.isLoggedIn, true);
-      await SharedPrefService.setString(
-        PrefKeys.userEmail,
-        emailController.text.trim(),
-      );
+
+      Map<String, dynamic> decodedToken = {};
+      String? role;
+
+      try {
+        decodedToken = JwtDecoder.decode(token);
+        debugPrint("Decoded Token: $decodedToken");
+
+        role = decodedToken["role"]?.toString();
+
+        if (role == null || role.isEmpty) {
+          final authorities = decodedToken["authorities"];
+          if (authorities is List && authorities.isNotEmpty) {
+            role = authorities.first.toString();
+          }
+        }
+      } catch (e) {
+        debugPrint("JWT decode failed: $e");
+      }
+
+      role ??= response["role"]?.toString() ?? response["ROLE"]?.toString();
+
+      if (role == null || role.isEmpty) {
+        throw Exception("Role not found");
+      }
+      userRole = role;
+      await SharedPrefService.saveLogin(token: token, role: role);
       if (rememberMe) {
-        await SharedPrefService.setString(
-          PrefKeys.rememberEmail,
-          emailController.text.trim(),
-        );
-        await SharedPrefService.setString(
-          PrefKeys.rememberPassword,
-          passwordController.text.trim(),
+        await SharedPrefService.saveRememberMe(
+          email: email,
+          password: password,
         );
       } else {
-        await SharedPrefService.remove(PrefKeys.rememberEmail);
-        await SharedPrefService.remove(PrefKeys.rememberPassword);
+        await SharedPrefService.clearRememberMe();
       }
+
+      return role;
+    } finally {
       isLoading = false;
       notifyListeners();
-      return true;
-    } catch (e) {
-      isLoading = false;
-      notifyListeners();
-      rethrow;
     }
   }
 

@@ -1,13 +1,19 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../model/blood_donor_model.dart';
+import '../../model/blood_bank_model.dart';
+import '../../data/shared_pref_service.dart';
+import '../../model/user_model.dart';
+import '../../service/api_client.dart';
+import '../../service/api_config.dart';
+import '../../service/blood_service.dart';
 
 class AddDonorViewModel extends ChangeNotifier {
-  final nationalIdController = TextEditingController();
+  final BloodService _service = BloodService();
+  UserModel? _user;
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
-  final lastDonationDateController = TextEditingController();
   final List<String> bloodGroups = [
     "A+",
     "A-",
@@ -21,6 +27,39 @@ class AddDonorViewModel extends ChangeNotifier {
   String? selectedBloodGroup;
   DateTime? selectedDate;
   bool isValid = false;
+  bool isLoading = false;
+
+  Future<void> loadProfile() async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      final email = SharedPrefService.getString("remember_email");
+      if (email == null || email.isEmpty) {
+        throw Exception("Email not found");
+      }
+      final url = "${ApiConfig.baseUrl}/profile?email=$email";
+      final response = await ApiClient.get(url);
+      final jsonData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final data = jsonData is Map && jsonData.containsKey("data")
+            ? jsonData["data"]
+            : jsonData;
+        _user = UserModel.fromJson(data);
+        nameController.text = _user?.name ?? "";
+        emailController.text = _user?.email ?? email;
+        phoneController.text = _user?.phone ?? "";
+        addressController.text = _user?.address ?? "";
+        validateForm();
+      } else {
+        throw Exception(jsonData["message"] ?? "Failed to load profile");
+      }
+    } catch (e) {
+      debugPrint("Load Profile Error: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 
   void setBloodGroup(String? value) {
     selectedBloodGroup = value;
@@ -36,49 +75,46 @@ class AddDonorViewModel extends ChangeNotifier {
     );
     if (picked != null) {
       selectedDate = picked;
-      lastDonationDateController.text =
-          "${picked.day}/${picked.month}/${picked.year}";
       validateForm();
     }
   }
 
   void validateForm() {
-    final emailPattern = RegExp(
-      r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+$",
-    );
     isValid =
-        nationalIdController.text.isNotEmpty &&
-        nameController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        emailPattern.hasMatch(emailController.text) &&
-        phoneController.text.isNotEmpty &&
+        nameController.text.trim().isNotEmpty &&
+        emailController.text.trim().isNotEmpty &&
+        phoneController.text.trim().isNotEmpty &&
+        addressController.text.trim().isNotEmpty &&
         selectedBloodGroup != null &&
         selectedDate != null;
     notifyListeners();
   }
 
-  BloodBankModel getDonorModel() {
-    return BloodBankModel(
-      nationalId: nationalIdController.text,
+  Future<bool> submit() async {
+    final donor = BloodBankModel(
       name: nameController.text,
       email: emailController.text,
       phoneNumber: phoneController.text,
       address: addressController.text,
       bloodGroup: selectedBloodGroup!,
-      lastDonationDate: selectedDate!,
+      lastDonateDate: selectedDate!,
     );
+    return await _service.addProfile({
+      "name": donor.name,
+      "email": donor.email,
+      "phoneNumber": donor.phoneNumber,
+      "address": donor.address,
+      "bloodGroup": donor.bloodGroup,
+      "lastDonateDate": donor.lastDonateDate!.toIso8601String(),
+    });
   }
 
-  void clearForm() {
-    nationalIdController.clear();
-    nameController.clear();
-    emailController.clear();
-    phoneController.clear();
-    addressController.clear();
-    selectedBloodGroup = null;
-    lastDonationDateController.clear();
-    selectedDate = null;
-    isValid = false;
-    notifyListeners();
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    super.dispose();
   }
 }

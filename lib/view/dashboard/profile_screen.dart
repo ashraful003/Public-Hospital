@@ -1,217 +1,189 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:public_hospital/view/dashboard/blood_profile_screen.dart';
+import '../../data/shared_pref_service.dart';
+import '../../service/api_config.dart';
 import '../../viewModel/dashboard/profile_view_model.dart';
 import '../../model/user_model.dart';
 import 'change_old_password_screen.dart';
 import 'update_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final UserModel? currentUser;
+  final String dashboardRole;
 
-  const ProfileScreen({super.key, this.currentUser});
+  const ProfileScreen({super.key, required this.dashboardRole});
 
   @override
   Widget build(BuildContext context) {
-    final user =
-        currentUser ??
-        UserModel(
-          nationalId: '0123456789',
-          name: "Ashraful Alam",
-          email: "admin@gmail.com",
-          phone: '01717078044',
-          address: 'West Rajabazar, Dhaka-1215',
-          weight: '70',
-          dob: DateTime(1997, 12, 12),
-          degree: "Bsc In CSE",
-          institute: 'Daffodil International University',
-          specialist: 'Android Application',
-          imageUrl: 'assets/images/logo.png',
-          license: '123456789',
-          role: UserRole.patient,
-        );
-
     return ChangeNotifierProvider(
-      create: (_) => ProfileViewModel(user: user),
+      create: (_) => ProfileViewModel()..loadProfile(dashboardRole),
       child: Consumer<ProfileViewModel>(
         builder: (context, vm, _) {
+          if (vm.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (vm.user == null) {
+            final email = SharedPrefService.getString("remember_email");
+            return Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.person_off,
+                        size: 80,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Profile data not found",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          vm.loadProfile(dashboardRole);
+                        },
+                        child: const Text("Retry"),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+          final user = vm.user!;
           return Scaffold(
             backgroundColor: const Color(0xffF2F2F7),
             body: SafeArea(
               child: Column(
                 children: [
                   Container(
-                    width: double.infinity,
                     color: Colors.white,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-                          child: Text(
-                            "Profile",
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                        CircleAvatar(
+                          radius: 38,
+                          backgroundImage: _getProfileImage(vm, user),
                         ),
-
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: 16,
-                            top: 5,
-                          ),
-                          child: Row(
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: vm.pickedImage != null
-                                    ? Image.file(
-                                        vm.pickedImage!,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Image.asset(
-                                        vm.user.imageUrl ??
-                                            "assets/images/default_user.png",
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                      ),
-                              ),
-                              const SizedBox(width: 10),
-
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      vm.user.name ?? "",
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      vm.user.email ?? "",
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                user.name ?? "",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 18,
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          UpdateProfileScreen(user: vm.user),
-                                    ),
-                                  );
-                                },
-                              ),
+                              const SizedBox(height: 4),
+                              Text(user.email ?? ""),
                             ],
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UpdateProfileScreen(
+                                  user: user,
+                                  dashboardRole: dashboardRole,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 15),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(.1),
-                            blurRadius: 10,
+                  const SizedBox(height: 10),
+                  _sectionCard(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.settings),
+                          title: const Text("Settings"),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
+                          onTap: vm.toggleChangePassword,
+                        ),
+                        if (vm.showChangePassword)
                           ListTile(
-                            leading: const Icon(Icons.settings),
-                            title: const Text("Settings"),
+                            leading: const Icon(Icons.lock_outline),
+                            title: const Text("Change Password"),
                             trailing: const Icon(
                               Icons.arrow_forward_ios,
                               size: 16,
                             ),
                             onTap: () {
-                              vm.toggleChangePassword();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ChangeOldPasswordScreen(user: user),
+                                ),
+                              );
                             },
                           ),
-                          if (vm.showChangePassword)
-                            Column(
-                              children: [
-                                ListTile(
-                                  leading: const Icon(Icons.lock_outline),
-                                  title: const Text("Change Password"),
-                                  trailing: const Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                  ),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => ChangeOldPasswordScreen(
-                                          user: vm.user,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          _menuItem(
-                            icon: Icons.notifications_none,
-                            title: "Notifications",
-                            color: Colors.black,
-                            onTap: () {},
+                        ListTile(
+                          leading: const Icon(Icons.notifications_none),
+                          title: const Text("Notifications"),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
                           ),
-                        ],
-                      ),
+                          onTap: () {},
+                        ),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.bloodtype,
+                            color: Colors.red,
+                          ),
+                          title: const Text(
+                            "Blood Profile",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          trailing: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BloodProfileScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
-
-                  const SizedBox(height: 15),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(.1),
-                            blurRadius: 10,
-                          ),
-                        ],
+                  const SizedBox(height: 10),
+                  _sectionCard(
+                    child: ListTile(
+                      leading: const Icon(Icons.logout, color: Colors.red),
+                      title: const Text(
+                        "Logout",
+                        style: TextStyle(fontSize: 16, color: Colors.red),
                       ),
-                      child: _menuItem(
-                        icon: Icons.logout,
-                        title: "Logout",
-                        color: Colors.red,
-                        onTap: () => _showLogoutDialog(context, vm),
-                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showLogoutDialog(context, vm),
                     ),
                   ),
                 ],
@@ -223,35 +195,55 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _menuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return ListTile(
-      leading: Icon(icon, size: 24, color: color),
-      title: Text(title, style: TextStyle(fontSize: 16, color: color)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: onTap,
+  ImageProvider _getProfileImage(ProfileViewModel vm, UserModel user) {
+    try {
+      if (vm.pickedImage != null) {
+        return FileImage(vm.pickedImage!);
+      }
+      if (user.imageUrl != null && user.imageUrl!.isNotEmpty) {
+        String url = user.imageUrl!;
+        if (!url.startsWith("http")) {
+          url = "${ApiConfig.baseUrl}$url";
+        }
+        return NetworkImage(url);
+      }
+    } catch (e) {
+      debugPrint("Image error: $e");
+    }
+    return const AssetImage("assets/images/logo.png");
+  }
+
+  Widget _sectionCard({required Widget child}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          ],
+        ),
+        child: child,
+      ),
     );
   }
 
   void _showLogoutDialog(BuildContext context, ProfileViewModel vm) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("No"),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Cancel"),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              vm.logout(context);
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await vm.logout(context);
             },
             child: const Text("Yes"),
           ),

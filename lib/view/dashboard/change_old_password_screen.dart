@@ -107,7 +107,7 @@ class _ChangeOldPasswordView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     onPressed: (vm.isButtonEnabled && !vm.isLoading)
-                        ? () => vm.changePassword(context)
+                        ? () => vm.changeOldPassword(context)
                         : null,
                     child: vm.isLoading
                         ? const SizedBox(

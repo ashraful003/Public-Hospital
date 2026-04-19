@@ -1,4 +1,17 @@
-enum UserRole { patient, doctor, nurse, doctorAssistant, cleaner }
+enum UserRole {
+  admin,
+  patient,
+  doctor,
+  nurse,
+  doctorAssistant,
+  cleaner,
+  accountant,
+  pharmacist,
+  receptionist,
+  pharmaceutical,
+  diagnosticCenter,
+  driver,
+}
 
 class UserModel {
   final String? nationalId;
@@ -10,6 +23,7 @@ class UserModel {
   final String? weight;
   final String? imageUrl;
   final String? password;
+  final String? newPassword;
   final String? institute;
   final String? degree;
   final String? license;
@@ -27,6 +41,7 @@ class UserModel {
     this.weight,
     this.imageUrl,
     this.password,
+    this.newPassword,
     this.institute,
     this.degree,
     this.license,
@@ -34,6 +49,58 @@ class UserModel {
     this.isActive,
     this.role,
   });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      nationalId: json["nationalId"]?.toString(),
+      name: json["name"],
+      email: json["email"],
+      phone: json["phone"],
+      address: json["address"],
+      weight: json["weight"]?.toString(),
+      imageUrl: json["imageUrl"],
+      password: json["password"],
+      newPassword: json["newPassword"],
+      institute: json["institute"],
+      degree: json["degree"],
+      license: json["license"],
+      specialist: json["specialist"],
+      isActive: json["isActive"],
+      dob: json["dob"] != null ? DateTime.tryParse(json["dob"]) : null,
+      role: _parseRole(json["role"]),
+    );
+  }
+
+  static UserRole? _parseRole(String? role) {
+    switch (role?.toUpperCase()) {
+      case "ADMIN":
+        return UserRole.admin;
+      case "PATIENT":
+        return UserRole.patient;
+      case "DOCTOR":
+        return UserRole.doctor;
+      case "NURSE":
+        return UserRole.nurse;
+      case "DOCTOR_ASSISTANT":
+        return UserRole.doctorAssistant;
+      case "CLEANER":
+        return UserRole.cleaner;
+      case "ACCOUNTANT":
+        return UserRole.accountant;
+      case "PHARMACIST":
+        return UserRole.pharmacist;
+      case "RECEPTIONIST":
+        return UserRole.receptionist;
+      case "PHARMACEUTICAL":
+        return UserRole.pharmaceutical;
+      case "DIAGNOSTIC_CENTER":
+        return UserRole.diagnosticCenter;
+      case "DRIVER":
+        return UserRole.driver;
+      default:
+        return null;
+    }
+  }
 
   UserModel copyWith({
     String? nationalId,
@@ -45,6 +112,7 @@ class UserModel {
     String? weight,
     String? imageUrl,
     String? password,
+    String? newPassword,
     String? institute,
     String? degree,
     String? license,
@@ -62,6 +130,7 @@ class UserModel {
       weight: weight ?? this.weight,
       imageUrl: imageUrl ?? this.imageUrl,
       password: password ?? this.password,
+      newPassword: newPassword ?? this.newPassword,
       institute: institute ?? this.institute,
       degree: degree ?? this.degree,
       license: license ?? this.license,
@@ -73,6 +142,8 @@ class UserModel {
 
   String? get roleValue {
     switch (role) {
+      case UserRole.admin:
+        return "ADMIN";
       case UserRole.patient:
         return "PATIENT";
       case UserRole.doctor:
@@ -83,6 +154,18 @@ class UserModel {
         return "DOCTOR_ASSISTANT";
       case UserRole.cleaner:
         return "CLEANER";
+      case UserRole.accountant:
+        return "ACCOUNTANT";
+      case UserRole.pharmacist:
+        return "PHARMACIST";
+      case UserRole.receptionist:
+        return "RECEPTIONIST";
+      case UserRole.pharmaceutical:
+        return "PHARMACEUTICAL";
+      case UserRole.diagnosticCenter:
+        return "DIAGNOSTIC_CENTER";
+      case UserRole.driver:
+        return "DRIVER";
       default:
         return null;
     }
@@ -99,6 +182,7 @@ class UserModel {
           ? "${dob!.year}-${dob!.month.toString().padLeft(2, '0')}-${dob!.day.toString().padLeft(2, '0')}"
           : null,
       "password": password,
+      "newPassword": newPassword,
       "weight": weight,
       "imageUrl": imageUrl,
       "institute": institute,

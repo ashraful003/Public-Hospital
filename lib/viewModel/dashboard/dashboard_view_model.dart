@@ -6,34 +6,45 @@ import '../../view/dashboard/appointment_screen.dart';
 import '../../view/dashboard/profile_screen.dart';
 
 class DashboardViewModel extends ChangeNotifier {
+  final String role;
+
+  DashboardViewModel(this.role) {
+    _init();
+  }
+
   int currentIndex = 0;
 
-  final List<BottomNavItemModel> navItems = [
-    BottomNavItemModel(
-      label: "Home",
-      icon: Icons.home,
-      iconColor: AppColors.black100,
-      textColor: AppColors.black100,
-    ),
-    BottomNavItemModel(
-      label: "Appointment",
-      icon: Icons.list_alt,
-      iconColor: AppColors.black100,
-      textColor: AppColors.black100,
-    ),
-    BottomNavItemModel(
-      label: "Profile",
-      icon: Icons.person,
-      iconColor: AppColors.black100,
-      textColor: AppColors.black100,
-    ),
-  ];
+  late final List<BottomNavItemModel> navItems;
+  late final List<Widget> screens;
 
-  final List<Widget> screens = [
-    const HomeScreen(),
-    const AppointmentScreen(),
-    const ProfileScreen(),
-  ];
+  void _init() {
+    navItems = [
+      BottomNavItemModel(
+        label: "Home",
+        icon: Icons.home,
+        iconColor: AppColors.black100,
+        textColor: AppColors.black100,
+      ),
+      BottomNavItemModel(
+        label: "Appointment",
+        icon: Icons.list_alt,
+        iconColor: AppColors.black100,
+        textColor: AppColors.black100,
+      ),
+      BottomNavItemModel(
+        label: "Profile",
+        icon: Icons.person,
+        iconColor: AppColors.black100,
+        textColor: AppColors.black100,
+      ),
+    ];
+
+    screens = [
+      HomeScreen(role: role),
+      const AppointmentScreen(),
+      ProfileScreen(dashboardRole: role),
+    ];
+  }
 
   void changeTab(int index) {
     currentIndex = index;

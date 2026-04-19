@@ -74,7 +74,7 @@ class SignUpViewModel extends ChangeNotifier {
       address: addressController.text.trim(),
       dob: dob,
       password: passwordController.text.trim(),
-      role: UserRole.patient,
+      role: UserRole.admin,
       isActive: true,
     );
   }
