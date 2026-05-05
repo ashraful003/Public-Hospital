@@ -1,67 +1,78 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-
 import '../../model/attendance_model.dart';
-
-enum AttendanceTab { list, attendance }
+import '../../model/user_model.dart';
+import '../../service/attendance_service.dart';
 
 class AttendanceViewModel extends ChangeNotifier {
-  AttendanceTab selectedTab = AttendanceTab.list;
-
-  final List<AttendanceModel> _allStaff = [
-    AttendanceModel(nationalId: "12345", name: "John Doe", date: getCurrentDate(), time: getCurrentTime()),
-  ];
-
+  final AttendanceService _service = AttendanceService();
+  UserModel? user;
   List<AttendanceModel> attendanceList = [];
+  bool isLoading = false;
+  Timer? _autoRefreshTimer;
 
   AttendanceViewModel() {
-    updateAttendanceList();
+    loadTodayAttendance();
+    _startAutoRefresh();
   }
 
-  void changeTab(AttendanceTab tab) {
-    selectedTab = tab;
-    updateAttendanceList();
+  void _setLoading(bool v) {
+    isLoading = v;
     notifyListeners();
   }
 
-  void updateAttendanceList() {
-    if (selectedTab == AttendanceTab.attendance) {
-      attendanceList = List.from(_allStaff);
-    } else {
-      attendanceList = _allStaff.where((e) => e.checkIn != null).toList();
-    }
-  }
-
-  void searchByNationalId(String id) {
-    if (id.isEmpty) {
-      updateAttendanceList();
-    } else {
-      attendanceList = attendanceList.where((e) => e.nationalId.contains(id)).toList();
+  Future<void> loadUser(String id) async {
+    try {
+      user = await _service.getUser(id);
+    } catch (_) {
+      user = null;
     }
     notifyListeners();
   }
 
-  void checkIn(String nationalId) {
-    final staff = _allStaff.firstWhere((e) => e.nationalId == nationalId);
-    staff.checkIn = getCurrentTime();
-    staff.isPresent = true;
-    updateAttendanceList();
+  Future<void> loadTodayAttendance() async {
+    try {
+      attendanceList = await _service.getTodayAttendance();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      loadTodayAttendance();
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<String> checkIn(String id) async {
+    _setLoading(true);
+    try {
+      final res = await _service.checkIn(id);
+      await loadTodayAttendance();
+      return res;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<String> checkOut(String id) async {
+    _setLoading(true);
+    try {
+      final res = await _service.checkOut(id);
+      await loadTodayAttendance();
+      return res;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  void clearUser() {
+    user = null;
     notifyListeners();
-  }
-
-  void checkOut(String nationalId) {
-    final staff = _allStaff.firstWhere((e) => e.nationalId == nationalId);
-    staff.checkOut = getCurrentTime();
-    updateAttendanceList();
-    notifyListeners();
-  }
-
-  static String getCurrentTime() {
-    final now = DateTime.now();
-    return "${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}:${now.second.toString().padLeft(2,'0')}";
-  }
-
-  static String getCurrentDate() {
-    final now = DateTime.now();
-    return "${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}";
   }
 }

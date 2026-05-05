@@ -34,6 +34,10 @@ flutter:
     - assets/images/blood.png
     - assets/images/ambulance.png
     - assets/images/logo.png
+    - assets/images/person.png
+    - assets/images/start.png
+    - assets/images/end.png
     - assets/MedicalReport.pdf
     - assets/TestReport.pdf
+
   uses-material-design: true

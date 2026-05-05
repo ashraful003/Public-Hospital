@@ -1,47 +1,32 @@
 import 'package:flutter/material.dart';
 import '../../model/blood_bank_model.dart';
+import '../../service/blood_service.dart';
 
-class BloodBankViewModel extends ChangeNotifier {
-  final List<BloodBankModel> _allDonors = [
-    BloodBankModel(
-      name: "Rahim Uddin",
-      email: "rahim@gmail.com",
-      phoneNumber: "01700000001",
-      bloodGroup: "A+",
-      lastDonateDate: DateTime.now().subtract(const Duration(days: 5)),
-      address: "Dhaka",
-    ),
-    BloodBankModel(
-      name: "Karim Hasan",
-      email: "karim@gmail.com",
-      phoneNumber: "01700000002",
-      bloodGroup: "B+",
-      lastDonateDate: DateTime.now().subtract(const Duration(days: 12)),
-      address: "Gazipur",
-    ),
-    BloodBankModel(
-      name: "Sadia Islam",
-      email: "sadia@gmail.com",
-      phoneNumber: "01700000003",
-      bloodGroup: "O-",
-      lastDonateDate: DateTime.now().subtract(const Duration(days: 30)),
-      address: "Chattogram",
-    ),
-    BloodBankModel(
-      name: "Nusrat Jahan",
-      email: "nusrat@gmail.com",
-      phoneNumber: "01700000004",
-      bloodGroup: "AB+",
-      lastDonateDate: DateTime.now().subtract(const Duration(days: 2)),
-      address: "Khulna",
-    ),
-  ];
+class BloodDonorViewModel extends ChangeNotifier {
+  final BloodService _service = BloodService();
+  List<BloodBankModel> _allDonors = [];
   List<BloodBankModel> _filteredDonors = [];
 
   List<BloodBankModel> get donors => _filteredDonors;
+  bool isLoading = false;
 
-  BloodBankViewModel() {
-    _filteredDonors = _allDonors;
+  BloodDonorViewModel() {
+    loadDonors();
+  }
+
+  Future<void> loadDonors() async {
+    isLoading = true;
+    notifyListeners();
+    try {
+      final data = await _service.getAllDonors();
+      _allDonors = data;
+      _filteredDonors = data;
+    } catch (e) {
+      _allDonors = [];
+      _filteredDonors = [];
+    }
+    isLoading = false;
+    notifyListeners();
   }
 
   void searchByBloodGroup(String query) {
@@ -58,8 +43,7 @@ class BloodBankViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addDonor(BloodBankModel donor) {
-    _allDonors.add(donor);
-    searchByBloodGroup("");
+  Future<void> refresh() async {
+    await loadDonors();
   }
 }

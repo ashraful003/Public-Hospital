@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:public_hospital/color/app_color.dart';
-import 'package:public_hospital/model/user_model.dart';
-import 'package:public_hospital/viewModel/dashboard/doctor_assistant_details_view_model.dart';
-import 'package:public_hospital/model/home_item_model.dart';
-import 'package:public_hospital/widgets/home_circle_item.dart';
+import '../../color/app_color.dart';
+import '../../model/user_model.dart';
+import '../../viewModel/dashboard/accountant_details_view_model.dart';
+import '../../model/home_item_model.dart';
+import '../../widgets/home_circle_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DoctorAssistantDetailsScreen extends StatelessWidget {
-  final UserModel assistant;
+class AccountantDetailsScreen extends StatelessWidget {
+  final UserModel accountant;
 
-  const DoctorAssistantDetailsScreen({super.key, required this.assistant});
+  const AccountantDetailsScreen({super.key, required this.accountant});
 
   bool get isMobilePlatform {
     if (kIsWeb) return false;
@@ -22,15 +22,15 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<DoctorAssistantDetailsViewModel>(
-      create: (_) => DoctorAssistantDetailsViewModel(assistant: assistant),
-      child: Consumer<DoctorAssistantDetailsViewModel>(
+    return ChangeNotifierProvider<AccountantDetailsViewModel>(
+      create: (_) => AccountantDetailsViewModel(accountant: accountant),
+      child: Consumer<AccountantDetailsViewModel>(
         builder: (context, vm, _) {
-          final formattedDate = vm.assistant.dob != null
-              ? DateFormat('dd MMM yyyy').format(vm.assistant.dob!)
+          final formattedDate = vm.accountant.dob != null
+              ? DateFormat('dd MMM yyyy').format(vm.accountant.dob!)
               : "N/A";
           ImageProvider? _getImage() {
-            final img = vm.assistant.imageUrl;
+            final img = vm.accountant.imageUrl;
             if (img == null || img.isEmpty) return null;
             if (img.startsWith("http")) {
               return NetworkImage(img);
@@ -79,7 +79,7 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        vm.assistant.name ?? "Unknown",
+                        vm.accountant.name ?? "Unknown Accountant",
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -87,7 +87,7 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'ID : ${vm.assistant.nationalId ?? "N/A"}',
+                        'ID : ${vm.accountant.nationalId ?? "N/A"}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -100,16 +100,18 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                           Icon(
                             Icons.circle,
                             size: 12,
-                            color: vm.assistant.isActive!
+                            color: vm.accountant.isActive == true
                                 ? Colors.green
                                 : Colors.red,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            vm.assistant.isActive! ? 'Active' : 'Inactive',
+                            vm.accountant.isActive == true
+                                ? 'Active'
+                                : 'Inactive',
                             style: TextStyle(
                               fontSize: 14,
-                              color: vm.assistant.isActive!
+                              color: vm.accountant.isActive == true
                                   ? Colors.green
                                   : Colors.red,
                             ),
@@ -132,23 +134,23 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                               ),
                               _buildDetailsRow(
                                 icon: Icons.school,
-                                value: vm.assistant.institute ?? "N/A",
+                                value: vm.accountant.institute ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.workspace_premium,
-                                value: vm.assistant.degree ?? "N/A",
+                                value: vm.accountant.degree ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.email,
-                                value: vm.assistant.email ?? "N/A",
+                                value: vm.accountant.email ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.location_on,
-                                value: vm.assistant.address ?? "N/A",
+                                value: vm.accountant.address ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.phone,
-                                value: vm.assistant.phone ?? "N/A",
+                                value: vm.accountant.phone ?? "N/A",
                               ),
                             ],
                           ),
@@ -160,31 +162,35 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                 ),
                 if (isMobilePlatform)
                   Positioned(
-                    bottom: 40,
-                    right: 0,
-                    child: HomeCircleItem(
-                      item: HomeItemModel(
-                        title: '',
-                        icon: Icons.phone,
-                        bgColor: const Color(0xFF7E86E8),
-                      ),
-                      circleSize: 60,
-                      iconSize: 30,
-                      onTap: () async {
-                        final phoneNumber = vm.assistant.phone ?? '';
-                        if (phoneNumber.isEmpty) return;
-                        final Uri callUri = Uri(
-                          scheme: 'tel',
-                          path: phoneNumber,
-                        );
-                        if (await canLaunchUrl(callUri)) {
-                          await launchUrl(callUri);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Cannot call $phoneNumber')),
+                    bottom: 0,
+                    right: 20,
+                    child: SafeArea(
+                      child: HomeCircleItem(
+                        item: HomeItemModel(
+                          title: '',
+                          icon: Icons.phone,
+                          bgColor: const Color(0xFF7E86E8),
+                        ),
+                        circleSize: 60,
+                        iconSize: 30,
+                        onTap: () async {
+                          final phoneNumber = vm.accountant.phone ?? '';
+                          if (phoneNumber.isEmpty) return;
+                          final Uri callUri = Uri(
+                            scheme: 'tel',
+                            path: phoneNumber,
                           );
-                        }
-                      },
+                          if (await canLaunchUrl(callUri)) {
+                            await launchUrl(callUri);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Cannot call $phoneNumber'),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ),
               ],

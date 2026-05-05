@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/shared_pref_service.dart';
+import '../../utils/pref_keys.dart';
+import '../login/login_input_screen.dart';
 
 class AdmissionScreen extends StatefulWidget {
   final String role;
@@ -16,20 +18,35 @@ class _AdmissionScreenState extends State<AdmissionScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEmail();
+    _loadData();
   }
 
-  void _loadEmail() {
-    final savedEmail = SharedPrefService.getString("remember_email");
+  void _loadData() {
+    final savedEmail = SharedPrefService.getString(PrefKeys.rememberEmail);
     setState(() {
       email = savedEmail ?? "No Email Found";
     });
   }
 
+  Future<void> _logout() async {
+    await SharedPrefService.logout();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginInputScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Admission")),
+      appBar: AppBar(
+        title: const Text("Admission"),
+        actions: [
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

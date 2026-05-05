@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:public_hospital/color/app_color.dart';
-import 'package:public_hospital/view/dashboard/cleaner_details_screen.dart';
 import 'package:public_hospital/viewModel/dashboard/cleaner_view_model.dart';
+import 'package:public_hospital/view/dashboard/cleaner_details_screen.dart';
+import '../../color/app_color.dart';
 
 class CleanerScreen extends StatelessWidget {
   const CleanerScreen({super.key});
@@ -16,7 +16,7 @@ class CleanerScreen extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: AppColors.blue_200,
           title: const Text(
-            "Cleaner",
+            'Cleaner',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -24,6 +24,9 @@ class CleanerScreen extends StatelessWidget {
         ),
         body: Consumer<CleanerViewModel>(
           builder: (context, vm, child) {
+            String emptyMessage = vm.selectedTab == CleanerTab.all
+                ? "Cleaner not found"
+                : "Active cleaner not found";
             return Column(
               children: [
                 Container(
@@ -50,7 +53,7 @@ class CleanerScreen extends StatelessWidget {
                       children: [
                         TextField(
                           decoration: InputDecoration(
-                            hintText: 'Search by national Id',
+                            hintText: 'Search by National ID',
                             prefixIcon: const Icon(Icons.search),
                             filled: true,
                             fillColor: Colors.white,
@@ -63,33 +66,19 @@ class CleanerScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         Expanded(
-                          child: vm.cleaners.isEmpty
-                              ? const Center(
+                          child: vm.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : vm.cleaners.isEmpty
+                              ? Center(
                                   child: Text(
-                                    'No Cleaner Found',
-                                    style: TextStyle(fontSize: 16),
+                                    emptyMessage,
+                                    style: const TextStyle(fontSize: 16),
                                   ),
                                 )
                               : ListView.builder(
                                   itemCount: vm.cleaners.length,
                                   itemBuilder: (context, index) {
                                     final cleaner = vm.cleaners[index];
-                                    ImageProvider? avatarImage;
-                                    if (cleaner.imageUrl != null &&
-                                        cleaner.imageUrl!.isNotEmpty) {
-                                      if (cleaner.imageUrl!.startsWith(
-                                        'http',
-                                      )) {
-                                        avatarImage = NetworkImage(
-                                          cleaner.imageUrl!,
-                                        );
-                                      } else {
-                                        avatarImage = AssetImage(
-                                          cleaner.imageUrl!,
-                                        );
-                                      }
-                                    }
-
                                     return Card(
                                       margin: const EdgeInsets.only(bottom: 12),
                                       shape: RoundedRectangleBorder(
@@ -99,8 +88,20 @@ class CleanerScreen extends StatelessWidget {
                                         leading: CircleAvatar(
                                           radius: 25,
                                           backgroundColor: Colors.grey.shade200,
-                                          backgroundImage: avatarImage,
-                                          child: avatarImage == null
+                                          backgroundImage:
+                                              cleaner.imageUrl != null
+                                              ? cleaner.imageUrl!.startsWith(
+                                                      'assets',
+                                                    )
+                                                    ? AssetImage(
+                                                        cleaner.imageUrl!,
+                                                      )
+                                                    : NetworkImage(
+                                                            cleaner.imageUrl!,
+                                                          )
+                                                          as ImageProvider
+                                              : null,
+                                          child: cleaner.imageUrl == null
                                               ? const Icon(
                                                   Icons.person,
                                                   color: Colors.grey,
@@ -108,13 +109,13 @@ class CleanerScreen extends StatelessWidget {
                                               : null,
                                         ),
                                         title: Text(
-                                          cleaner.name!,
+                                          cleaner.name ?? "Unknown Cleaner",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         subtitle: Text(
-                                          'National Id: ${cleaner.nationalId}',
+                                          'National ID: ${cleaner.nationalId ?? "N/A"}',
                                         ),
                                         onTap: () {
                                           Navigator.push(

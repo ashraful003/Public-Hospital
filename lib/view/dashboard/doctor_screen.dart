@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import '../../color/app_color.dart';
-import '../../viewModel/dashboard/doctor_view_model.dart';
-import 'doctor_details_screen.dart';
+import 'package:public_hospital/color/app_color.dart';
+import 'package:public_hospital/view/dashboard/doctor_details_screen.dart';
+import 'package:public_hospital/viewModel/dashboard/doctor_view_model.dart';
 
 class DoctorScreen extends StatelessWidget {
   const DoctorScreen({super.key});
-
-  bool get showBackButton {
-    if (kIsWeb) return false;
-    return defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS ||
-        defaultTargetPlatform == TargetPlatform.linux;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,58 +13,44 @@ class DoctorScreen extends StatelessWidget {
       create: (_) => DoctorViewModel(),
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
-
         appBar: AppBar(
           backgroundColor: AppColors.blue_200,
-          iconTheme: const IconThemeData(color: Colors.white),
-          centerTitle: true,
           title: const Text(
-            "Doctors",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            'Doctor',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          automaticallyImplyLeading: false,
-          leading: showBackButton
-              ? IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          )
-              : null,
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
-
         body: Consumer<DoctorViewModel>(
           builder: (context, vm, child) {
-
+            String emptyMessage = vm.selectedTab == DoctorTab.all
+                ? "Doctor not found"
+                : "Active doctor not found";
             return Column(
               children: [
-
                 Container(
                   color: Colors.white,
                   child: Row(
                     children: [
                       _buildTab(
-                        title: "Doctor List",
+                        title: 'Doctor',
                         isSelected: vm.selectedTab == DoctorTab.all,
-                        onTap: () => vm.changeTab(DoctorTab.all),
+                        onTab: () => vm.changeTab(DoctorTab.all),
                       ),
                       _buildTab(
-                        title: "Active Doctor",
+                        title: 'Active Doctor',
                         isSelected: vm.selectedTab == DoctorTab.active,
-                        onTap: () => vm.changeTab(DoctorTab.active),
+                        onTab: () => vm.changeTab(DoctorTab.active),
                       ),
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-
                     child: Column(
                       children: [
-
                         TextField(
                           decoration: InputDecoration(
                             hintText: "Search by National ID",
@@ -88,81 +64,74 @@ class DoctorScreen extends StatelessWidget {
                           ),
                           onChanged: vm.searchByNationalId,
                         ),
-
                         const SizedBox(height: 20),
-
                         Expanded(
-                          child: vm.doctors.isEmpty
-                              ? const Center(
-                            child: Text(
-                              "No Doctors Found",
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          )
+                          child: vm.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : vm.doctors.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    emptyMessage,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                )
                               : ListView.builder(
-                            itemCount: vm.doctors.length,
-                            itemBuilder: (context, index) {
-
-                              final doctor = vm.doctors[index];
-
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-
-                                child: ListTile(
-
-                                  leading: CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.grey.shade200,
-                                    backgroundImage:
-                                    doctor.imageUrl != null &&
-                                        doctor.imageUrl!.isNotEmpty
-                                        ? doctor.imageUrl!
-                                        .startsWith('assets')
-                                        ? AssetImage(
-                                      doctor.imageUrl!,
-                                    )
-                                        : NetworkImage(
-                                      doctor.imageUrl!,
-                                    ) as ImageProvider
-                                        : null,
-
-                                    child: doctor.imageUrl == null
-                                        ? const Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
-                                    )
-                                        : null,
-                                  ),
-
-                                  title: Text(
-                                    doctor.name ?? "Unknown Doctor",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  subtitle: Text(
-                                    "National ID: ${doctor.nationalId ?? ""}",
-                                  ),
-
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            DoctorDetailsScreen(
-                                              doctor: doctor,
+                                  itemCount: vm.doctors.length,
+                                  itemBuilder: (context, index) {
+                                    final doctor = vm.doctors[index];
+                                    return Card(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          radius: 25,
+                                          backgroundColor: Colors.grey.shade200,
+                                          backgroundImage:
+                                              doctor.imageUrl != null
+                                              ? doctor.imageUrl!.startsWith(
+                                                      'assets',
+                                                    )
+                                                    ? AssetImage(
+                                                        doctor.imageUrl!,
+                                                      )
+                                                    : NetworkImage(
+                                                            doctor.imageUrl!,
+                                                          )
+                                                          as ImageProvider
+                                              : null,
+                                          child: doctor.imageUrl == null
+                                              ? const Icon(
+                                                  Icons.person,
+                                                  color: Colors.grey,
+                                                )
+                                              : null,
+                                        ),
+                                        title: Text(
+                                          doctor.name ?? "Unknown Doctor",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'National Id: ${doctor.nationalId ?? "N/A"}',
+                                        ),
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  DoctorDetailsScreen(
+                                                    doctor: doctor,
+                                                  ),
                                             ),
+                                          );
+                                        },
                                       ),
                                     );
                                   },
                                 ),
-                              );
-                            },
-                          ),
                         ),
                       ],
                     ),
@@ -179,15 +148,14 @@ class DoctorScreen extends StatelessWidget {
   Widget _buildTab({
     required String title,
     required bool isSelected,
-    required VoidCallback onTap,
+    required VoidCallback onTab,
   }) {
     return Expanded(
       child: GestureDetector(
-        onTap: onTap,
+        onTap: onTab,
         child: Column(
           children: [
             const SizedBox(height: 16),
-
             Text(
               title,
               style: TextStyle(
@@ -196,14 +164,10 @@ class DoctorScreen extends StatelessWidget {
                 color: isSelected ? AppColors.blue_200 : Colors.grey,
               ),
             ),
-
             const SizedBox(height: 12),
-
             Container(
               height: 3,
-              color: isSelected
-                  ? AppColors.blue_200
-                  : Colors.transparent,
+              color: isSelected ? AppColors.blue_200 : Colors.transparent,
             ),
           ],
         ),

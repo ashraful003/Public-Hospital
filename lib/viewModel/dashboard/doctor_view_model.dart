@@ -1,79 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:public_hospital/model/user_model.dart';
+import 'package:public_hospital/service/staff_service.dart';
+import '../../model/user_model.dart';
 
 enum DoctorTab { all, active }
 
 class DoctorViewModel extends ChangeNotifier {
+  final StaffService _service = StaffService();
+
   DoctorTab _selectedTab = DoctorTab.all;
 
   DoctorTab get selectedTab => _selectedTab;
-  final List<UserModel> _allDoctors = [
-    UserModel(
-      nationalId: "12345",
-      license: '123456789',
-      name: "Dr. John Doe",
-      email: 'john@gmail.com',
-      phone: "01711111111",
-      dob: DateTime(1997, 12, 12),
-      institute: 'Dhaka Medical College Hospital',
-      specialist: "Cardiologist",
-      degree: "MBBS, MD (Cardiology)",
-      address: "Dhaka, Bangladesh",
-      imageUrl: 'assets/images/logo.png',
-      isActive: true,
-      role: UserRole.doctor,
-    ),
-    UserModel(
-      nationalId: "67890",
-      license: '123456789',
-      name: "Dr. Sarah Smith",
-      email: 'smith@gmail.com',
-      phone: "01711111111",
-      dob: DateTime(1997, 12, 12),
-      institute: 'Dhaka Medical College Hospital',
-      specialist: "Cardiologist",
-      degree: "MBBS, MD (Cardiology)",
-      address: "Dhaka, Bangladesh",
-      imageUrl: 'assets/images/logo.png',
-      isActive: false,
-      role: UserRole.doctor,
-    ),
-  ];
+
+  List<UserModel> _allDoctors = [];
   List<UserModel> _filteredDoctors = [];
 
   List<UserModel> get doctors => _filteredDoctors;
 
+  bool isLoading = false;
+
   DoctorViewModel() {
-    _filteredDoctors = List.from(_allDoctors);
+    loadDoctors();
   }
 
-  List<UserModel> _getBaseList() {
-    if (_selectedTab == DoctorTab.all) {
-      return _allDoctors;
-    } else {
-      return _allDoctors.where((doctor) => doctor.isActive == true).toList();
+  Future<void> loadDoctors() async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      if (_selectedTab == DoctorTab.all) {
+        _allDoctors = await _service.fetchAllDoctors();
+      } else {
+        _allDoctors = await _service.fetchActiveDoctors();
+      }
+
+      _filteredDoctors = List.from(_allDoctors);
+    } catch (e) {
+      debugPrint("Doctor error: $e");
+      _filteredDoctors = [];
     }
+
+    isLoading = false;
+    notifyListeners();
   }
 
   void changeTab(DoctorTab tab) {
     _selectedTab = tab;
-    _filteredDoctors = _getBaseList();
-    notifyListeners();
+    loadDoctors();
   }
 
   void searchByNationalId(String id) {
     final query = id.trim();
 
-    final baseList = _getBaseList();
-
     if (query.isEmpty) {
-      _filteredDoctors = baseList;
+      _filteredDoctors = List.from(_allDoctors);
     } else {
-      _filteredDoctors = baseList.where((doctor) {
-        final nid = doctor.nationalId ?? "";
+      _filteredDoctors = _allDoctors.where((d) {
+        final nid = d.nationalId ?? '';
         return nid.contains(query);
       }).toList();
     }
+
     notifyListeners();
   }
 }

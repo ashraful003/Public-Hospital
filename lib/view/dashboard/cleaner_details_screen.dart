@@ -26,58 +26,68 @@ class CleanerDetailsScreen extends StatelessWidget {
       create: (_) => CleanerDetailsViewModel(cleaner: cleaner),
       child: Consumer<CleanerDetailsViewModel>(
         builder: (context, vm, _) {
-          final formattedDate = DateFormat(
-            'dd MMM yyyy',
-          ).format(vm.cleaner.dob!);
-          ImageProvider avatarImage;
-          if (vm.cleaner.imageUrl != null && vm.cleaner.imageUrl!.isNotEmpty) {
-            if (vm.cleaner.imageUrl!.startsWith('http')) {
-              avatarImage = NetworkImage(vm.cleaner.imageUrl!);
+          final formattedDate = vm.cleaner.dob != null
+              ? DateFormat('dd MMM yyyy').format(vm.cleaner.dob!)
+              : "N/A";
+          ImageProvider? _getImage() {
+            final img = vm.cleaner.imageUrl;
+            if (img == null || img.isEmpty) return null;
+            if (img.startsWith("http")) {
+              return NetworkImage(img);
             } else {
-              avatarImage = AssetImage(vm.cleaner.imageUrl!);
+              return AssetImage(img);
             }
-          } else {
-            avatarImage = const AssetImage('assets/assistant_placeholder.png');
           }
 
           return Scaffold(
             appBar: AppBar(
               backgroundColor: AppColors.blue_200,
               title: const Text(
-                "Cleaner Profile",
+                'Cleaner Profile',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               centerTitle: true,
-              iconTheme: const IconThemeData(color: Colors.white),
               automaticallyImplyLeading: !kIsWeb,
+              iconTheme: const IconThemeData(color: Colors.white),
             ),
             body: Stack(
               children: [
                 SingleChildScrollView(
                   padding: const EdgeInsets.only(
                     left: 16,
-                    top: 16,
                     right: 16,
+                    top: 16,
                     bottom: 100,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CircleAvatar(radius: 50, backgroundImage: avatarImage),
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage: _getImage(),
+                        child: _getImage() == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.grey,
+                              )
+                            : null,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         vm.cleaner.name ?? "Unknown Cleaner",
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "ID: ${vm.cleaner.nationalId ?? "N/A"}",
+                        'ID : ${vm.cleaner.nationalId ?? "N/A"}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -90,19 +100,18 @@ class CleanerDetailsScreen extends StatelessWidget {
                           Icon(
                             Icons.circle,
                             size: 12,
-                            color: vm.cleaner.isActive!
+                            color: vm.cleaner.isActive == true
                                 ? Colors.green
                                 : Colors.red,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            vm.cleaner.isActive! ? "Active" : "Inactive",
+                            vm.cleaner.isActive == true ? 'Active' : 'Inactive',
                             style: TextStyle(
                               fontSize: 14,
-                              color: vm.cleaner.isActive!
+                              color: vm.cleaner.isActive == true
                                   ? Colors.green
                                   : Colors.red,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -117,27 +126,27 @@ class CleanerDetailsScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             children: [
-                              _buildDetailRow(
+                              _buildDetailsRow(
                                 icon: Icons.cake,
                                 value: formattedDate,
                               ),
-                              _buildDetailRow(
+                              _buildDetailsRow(
                                 icon: Icons.school,
                                 value: vm.cleaner.institute ?? "N/A",
                               ),
-                              _buildDetailRow(
+                              _buildDetailsRow(
                                 icon: Icons.workspace_premium,
                                 value: vm.cleaner.degree ?? "N/A",
                               ),
-                              _buildDetailRow(
+                              _buildDetailsRow(
                                 icon: Icons.email,
                                 value: vm.cleaner.email ?? "N/A",
                               ),
-                              _buildDetailRow(
+                              _buildDetailsRow(
                                 icon: Icons.location_on,
                                 value: vm.cleaner.address ?? "N/A",
                               ),
-                              _buildDetailRow(
+                              _buildDetailsRow(
                                 icon: Icons.phone,
                                 value: vm.cleaner.phone ?? "N/A",
                               ),
@@ -145,7 +154,7 @@ class CleanerDetailsScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 80),
+                      const SizedBox(height: 220),
                     ],
                   ),
                 ),
@@ -155,14 +164,14 @@ class CleanerDetailsScreen extends StatelessWidget {
                     right: 0,
                     child: HomeCircleItem(
                       item: HomeItemModel(
+                        title: '',
                         icon: Icons.phone,
                         bgColor: const Color(0xFF7E86E8),
-                        title: '',
                       ),
                       circleSize: 60,
                       iconSize: 30,
                       onTap: () async {
-                        final phoneNumber = vm.cleaner.phone ?? "";
+                        final phoneNumber = vm.cleaner.phone ?? '';
                         if (phoneNumber.isEmpty) return;
                         final Uri callUri = Uri(
                           scheme: 'tel',
@@ -172,11 +181,7 @@ class CleanerDetailsScreen extends StatelessWidget {
                           await launchUrl(callUri);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Cannot make a call to $phoneNumber',
-                              ),
-                            ),
+                            SnackBar(content: Text('Cannot call $phoneNumber')),
                           );
                         }
                       },
@@ -190,7 +195,7 @@ class CleanerDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow({required IconData icon, required String value}) {
+  Widget _buildDetailsRow({required IconData icon, required String value}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(

@@ -7,6 +7,7 @@ import '../../service/api_config.dart';
 import '../../viewModel/dashboard/profile_view_model.dart';
 import '../../model/user_model.dart';
 import 'change_old_password_screen.dart';
+import 'my_attendance_screen.dart';
 import 'update_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -140,15 +141,33 @@ class ProfileScreen extends StatelessWidget {
                               );
                             },
                           ),
-                        ListTile(
-                          leading: const Icon(Icons.notifications_none),
-                          title: const Text("Notifications"),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
+                        if (canSeeAttendance(dashboardRole))
+                          ListTile(
+                            leading: const Icon(Icons.assignment),
+                            title: const Text("Attendance"),
+                            trailing: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                            ),
+                            onTap: () {
+                              if (user.nationalId == null ||
+                                  user.nationalId!.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("National ID not found"),
+                                  ),
+                                );
+                                return;
+                              }
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      MyAttendanceScreen(user: user),
+                                ),
+                              );
+                            },
                           ),
-                          onTap: () {},
-                        ),
                         ListTile(
                           leading: const Icon(
                             Icons.bloodtype,
@@ -250,5 +269,25 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool canSeeAttendance(String role) {
+    final r = role.toLowerCase();
+    const allowedRoles = [
+      'admin',
+      'doctor',
+      'nurse',
+      'doctorassistant',
+      'cleaner',
+      'accountant',
+      'pharmacist',
+      'receptionist',
+      'driver',
+    ];
+    const blockedRoles = ['patient', 'pharmaceutical', 'diagnosticcenter'];
+    if (blockedRoles.contains(r)) return false;
+    if (allowedRoles.contains(r)) return true;
+
+    return false;
   }
 }

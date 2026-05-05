@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:public_hospital/color/app_color.dart';
-import 'package:public_hospital/view/dashboard/doctor_assistant_details_screen.dart';
-import 'package:public_hospital/viewModel/dashboard/doctor_assistant_view_model.dart';
+import 'package:public_hospital/view/dashboard/pharmacist_details_screen.dart';
+import '../../color/app_color.dart';
+import '../../viewModel/dashboard/pharmacist_view_model.dart';
 
-class DoctorAssistantScreen extends StatelessWidget {
-  const DoctorAssistantScreen({super.key});
+class PharmacistScreen extends StatelessWidget {
+  const PharmacistScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => DoctorAssistantViewModel(),
+      create: (_) => PharmacistViewModel(),
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
         appBar: AppBar(
           backgroundColor: AppColors.blue_200,
           title: const Text(
-            'Doctor Assistant',
+            'Pharmacist',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
           iconTheme: const IconThemeData(color: Colors.white),
         ),
-        body: Consumer<DoctorAssistantViewModel>(
+        body: Consumer<PharmacistViewModel>(
           builder: (context, vm, child) {
-            String emptyMessage = vm.selectedTab == DoctorAssistantTab.all
-                ? "Doctor assistant not found"
-                : "Active assistant not found";
+            String emptyMessage = vm.selectedTab == PharmacistTab.all
+                ? "Pharmacist not found"
+                : "Active pharmacist not found";
             return Column(
               children: [
                 Container(
@@ -34,14 +34,14 @@ class DoctorAssistantScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       _buildTab(
-                        title: 'Assistant',
-                        isSelected: vm.selectedTab == DoctorAssistantTab.all,
-                        onTab: () => vm.changeTab(DoctorAssistantTab.all),
+                        title: 'Pharmacist',
+                        isSelected: vm.selectedTab == PharmacistTab.all,
+                        onTab: () => vm.changeTab(PharmacistTab.all),
                       ),
                       _buildTab(
-                        title: 'Active Assistant',
-                        isSelected: vm.selectedTab == DoctorAssistantTab.active,
-                        onTab: () => vm.changeTab(DoctorAssistantTab.active),
+                        title: 'Active Pharmacist',
+                        isSelected: vm.selectedTab == PharmacistTab.active,
+                        onTab: () => vm.changeTab(PharmacistTab.active),
                       ),
                     ],
                   ),
@@ -68,7 +68,7 @@ class DoctorAssistantScreen extends StatelessWidget {
                         Expanded(
                           child: vm.isLoading
                               ? const Center(child: CircularProgressIndicator())
-                              : vm.assistants.isEmpty
+                              : vm.pharmacists.isEmpty
                               ? Center(
                                   child: Text(
                                     emptyMessage,
@@ -76,9 +76,9 @@ class DoctorAssistantScreen extends StatelessWidget {
                                   ),
                                 )
                               : ListView.builder(
-                                  itemCount: vm.assistants.length,
+                                  itemCount: vm.pharmacists.length,
                                   itemBuilder: (context, index) {
-                                    final assistant = vm.assistants[index];
+                                    final pharmacist = vm.pharmacists[index];
                                     return Card(
                                       margin: const EdgeInsets.only(bottom: 12),
                                       shape: RoundedRectangleBorder(
@@ -89,19 +89,20 @@ class DoctorAssistantScreen extends StatelessWidget {
                                           radius: 25,
                                           backgroundColor: Colors.grey.shade200,
                                           backgroundImage:
-                                              assistant.imageUrl != null
-                                              ? assistant.imageUrl!.startsWith(
+                                              pharmacist.imageUrl != null
+                                              ? pharmacist.imageUrl!.startsWith(
                                                       'assets',
                                                     )
                                                     ? AssetImage(
-                                                        assistant.imageUrl!,
+                                                        pharmacist.imageUrl!,
                                                       )
                                                     : NetworkImage(
-                                                            assistant.imageUrl!,
+                                                            pharmacist
+                                                                .imageUrl!,
                                                           )
                                                           as ImageProvider
                                               : null,
-                                          child: assistant.imageUrl == null
+                                          child: pharmacist.imageUrl == null
                                               ? const Icon(
                                                   Icons.person,
                                                   color: Colors.grey,
@@ -109,21 +110,22 @@ class DoctorAssistantScreen extends StatelessWidget {
                                               : null,
                                         ),
                                         title: Text(
-                                          assistant.name ?? "Unknown Assistant",
+                                          pharmacist.name ??
+                                              "Unknown Pharmacist",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         subtitle: Text(
-                                          'ID: ${assistant.nationalId ?? "N/A"}',
+                                          'ID: ${pharmacist.nationalId ?? "N/A"}',
                                         ),
                                         onTap: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (_) =>
-                                                  DoctorAssistantDetailsScreen(
-                                                    assistant: assistant,
+                                                  PharmacistDetailsScreen(
+                                                    pharmacist: pharmacist,
                                                   ),
                                             ),
                                           );

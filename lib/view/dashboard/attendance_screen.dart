@@ -1,300 +1,200 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../color/app_color.dart';
 import '../../viewModel/dashboard/attendance_view_model.dart';
 
-class AttendanceScreen extends StatelessWidget {
+class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
 
-  bool get isDesktop {
-    return defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS ||
-        defaultTargetPlatform == TargetPlatform.linux;
+  @override
+  State<AttendanceScreen> createState() => _AttendanceScreenState();
+}
+
+class _AttendanceScreenState extends State<AttendanceScreen> {
+  final TextEditingController nationalIdController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    nationalIdController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _showPopup({
+    required String title,
+    required String subtitle,
+    required String imagePath,
+    required Color color,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 600),
+                  builder: (context, value, child) {
+                    return Transform.scale(
+                      scale: value,
+                      child: Image.asset(imagePath, height: 120),
+                    );
+                  },
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(subtitle),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  void _onSearchChanged(String value, AttendanceViewModel vm) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (value.isNotEmpty) {
+        vm.loadUser(value);
+      } else {
+        vm.clearUser();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AttendanceViewModel(),
-      child: Scaffold(
-        backgroundColor: const Color(0xffF2F3F7),
-        appBar: AppBar(
-          backgroundColor:AppColors.blue_200,
-          title: const Text(
-            "Attendance",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: true,
-          iconTheme: const IconThemeData(color: Colors.white),
-        ),
-        body: Consumer<AttendanceViewModel>(
-          builder: (context, vm, child) {
-            return Column(
-              children: [
-                Container(
-                  color: Colors.white,
-                  child: Row(
-                    children: [
-                      _buildTab(
-                        title: "List",
-                        isSelected: vm.selectedTab == AttendanceTab.list,
-                        onTap: () => vm.changeTab(AttendanceTab.list),
-                      ),
-                      _buildTab(
-                        title: "Attendance",
-                        isSelected: vm.selectedTab == AttendanceTab.attendance,
-                        onTap: () => vm.changeTab(AttendanceTab.attendance),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Search by National ID",
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onChanged: vm.searchByNationalId,
-                  ),
-                ),
-                Expanded(
-                  child: vm.selectedTab == AttendanceTab.list
-                      ? ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: vm.attendanceList.length,
-                    itemBuilder: (context, index) {
-                      final staff = vm.attendanceList[index];
-                      if (staff.checkIn == null) return const SizedBox();
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          title: Text(
-                            staff.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("National ID: ${staff.nationalId}"),
-                              Text("Check In: ${staff.checkIn ?? "-"}"),
-                              Text("Check Out: ${staff.checkOut ?? "-"}"),
-                              Text("Date: ${staff.date}"),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                      : isDesktop
-                      ? ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: vm.attendanceList.length,
-                    itemBuilder: (context, index) {
-                      final staff = vm.attendanceList[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          title: Text(
-                            staff.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              Text("National ID: ${staff.nationalId}"),
-                              Text("Check In: ${staff.checkIn ?? "-"}"),
-                              Text(
-                                  "Check Out: ${staff.checkOut ?? "-"}"),
-                              Text("Date: ${staff.date}"),
-                            ],
-                          ),
-                          trailing: staff.checkIn == null
-                              ? ElevatedButton(
-                            onPressed: () =>
-                                vm.checkIn(staff.nationalId),
-                            child: const Text("Check In"),
-                          )
-                              : staff.checkOut == null
-                              ? ElevatedButton(
-                            onPressed: () {
-                              vm.checkOut(staff.nationalId);
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (_) =>
-                                    AnimatedCheckoutPopup(
-                                        staffName:
-                                        staff.name),
-                              );
-                            },
-                            child:
-                            const Text("Check Out"),
-                          )
-                              : const Icon(Icons.check_circle,
-                              color: Colors.green),
-                        ),
-                      );
-                    },
-                  )
-                      : const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text(
-                        "Attendance details available only on desktop.",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
-                        textAlign: TextAlign.center,
-                      ),
+      child: Consumer<AttendanceViewModel>(
+        builder: (context, vm, child) {
+          return Scaffold(
+            appBar: AppBar(title: const Text("Attendance System")),
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: nationalIdController,
+                    onChanged: (value) => _onSearchChanged(value, vm),
+                    decoration: const InputDecoration(
+                      labelText: "Enter National ID",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.badge),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTab({
-    required String title,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.blue : Colors.grey,
+                  const SizedBox(height: 20),
+                  if (vm.user != null)
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text(
+                            (vm.user?.name ?? "").isNotEmpty
+                                ? (vm.user?.name ?? "")[0]
+                                : "?",
+                          ),
+                        ),
+                        title: Text(vm.user?.name ?? "Unknown"),
+                        subtitle: Text(vm.user?.nationalId ?? ""),
+                        trailing: Icon(
+                          vm.user?.isActive == true
+                              ? Icons.check_circle
+                              : Icons.cancel,
+                          color: vm.user?.isActive == true
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                  if (vm.user != null)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: vm.isLoading
+                              ? null
+                              : () async {
+                                  final result = await vm.checkIn(
+                                    nationalIdController.text,
+                                  );
+                                  if (result.toLowerCase().contains(
+                                    "successful",
+                                  )) {
+                                    _showPopup(
+                                      title: "Lets start Work 🚀",
+                                      subtitle: "Have a productive day!",
+                                      imagePath: "assets/images/start.png",
+                                      color: Colors.green,
+                                    );
+                                  }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result)),
+                                  );
+                                },
+                          child: const Text("Check In"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: vm.isLoading
+                              ? null
+                              : () async {
+                                  final result = await vm.checkOut(
+                                    nationalIdController.text,
+                                  );
+                                  if (result.toLowerCase().contains(
+                                    "successful",
+                                  )) {
+                                    _showPopup(
+                                      title: "Well Done 😴",
+                                      subtitle: "Go and rest well!",
+                                      imagePath: "assets/images/end.png",
+                                      color: Colors.orange,
+                                    );
+                                  }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result)),
+                                  );
+                                },
+                          child: const Text("Check Out"),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 20),
+                  if (vm.isLoading) const CircularProgressIndicator(),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              height: 3,
-              color: isSelected ? Colors.blue : Colors.transparent,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-class AnimatedCheckoutPopup extends StatefulWidget {
-  final String staffName;
-  const AnimatedCheckoutPopup({super.key, required this.staffName});
-
-  @override
-  State<AnimatedCheckoutPopup> createState() => _AnimatedCheckoutPopupState();
-}
-
-class _AnimatedCheckoutPopupState extends State<AnimatedCheckoutPopup>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _bounceAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-
-    _bounceAnimation = Tween<double>(begin: 0, end: 20)
-        .chain(CurveTween(curve: Curves.easeInOut))
-        .animate(_controller);
-
-    _controller.repeat(reverse: true);
-
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: AnimatedBuilder(
-          animation: _bounceAnimation,
-          builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(0, -_bounceAnimation.value),
-              child: child,
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.person, color: Colors.blue, size: 48),
-                const SizedBox(height: 16),
-                Text(
-                  "${widget.staffName} checked out!",
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

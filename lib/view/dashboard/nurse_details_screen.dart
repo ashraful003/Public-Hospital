@@ -17,7 +17,6 @@ class NurseDetailsScreen extends StatelessWidget {
 
   bool get isMobilePlatform {
     if (kIsWeb) return false;
-
     return defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
   }
@@ -32,12 +31,19 @@ class NurseDetailsScreen extends StatelessWidget {
           final formattedDate = dob != null
               ? DateFormat('dd MMM yyyy').format(dob)
               : "N/A";
-
           final image = vm.nurse.imageUrl;
+          ImageProvider? _getImage() {
+            final img = vm.nurse.imageUrl;
+            if (img == null || img.isEmpty) return null;
+            if (img.startsWith("http")) {
+              return NetworkImage(img);
+            } else {
+              return AssetImage(img);
+            }
+          }
 
           return Scaffold(
             backgroundColor: const Color(0xffF2F3F7),
-
             appBar: AppBar(
               backgroundColor: AppColors.blue_200,
               title: const Text(
@@ -50,7 +56,6 @@ class NurseDetailsScreen extends StatelessWidget {
               centerTitle: true,
               iconTheme: const IconThemeData(color: Colors.white),
             ),
-
             body: Stack(
               children: [
                 SingleChildScrollView(
@@ -60,23 +65,21 @@ class NurseDetailsScreen extends StatelessWidget {
                     top: 20,
                     bottom: 100,
                   ),
-
                   child: Column(
                     children: [
                       CircleAvatar(
-                        radius: 55,
+                        radius: 50,
                         backgroundColor: Colors.grey.shade200,
-                        backgroundImage: image != null && image.isNotEmpty
-                            ? image.startsWith('assets')
-                                  ? AssetImage(image)
-                                  : NetworkImage(image) as ImageProvider
-                            : const AssetImage(
-                                'assets/images/doctor_placeholder.png',
-                              ),
+                        backgroundImage: _getImage(),
+                        child: _getImage() == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.grey,
+                              )
+                            : null,
                       ),
-
                       const SizedBox(height: 10),
-
                       Text(
                         vm.nurse.name ?? "Unknown Nurse",
                         style: const TextStyle(
@@ -84,9 +87,7 @@ class NurseDetailsScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 4),
-
                       Text(
                         "ID: ${vm.nurse.nationalId ?? "N/A"}",
                         style: const TextStyle(
@@ -94,9 +95,7 @@ class NurseDetailsScreen extends StatelessWidget {
                           color: Colors.grey,
                         ),
                       ),
-
                       const SizedBox(height: 10),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -119,50 +118,40 @@ class NurseDetailsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 18),
-
                       Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-
                           child: Column(
                             children: [
                               _buildDetailRow(
                                 icon: Icons.verified,
                                 value: vm.nurse.license ?? "N/A",
                               ),
-
                               _buildDetailRow(
                                 icon: Icons.cake,
                                 value: formattedDate,
                               ),
-
                               _buildDetailRow(
                                 icon: Icons.school,
                                 value: vm.nurse.institute ?? "N/A",
                               ),
-
                               _buildDetailRow(
                                 icon: Icons.workspace_premium,
                                 value: vm.nurse.degree ?? "N/A",
                               ),
-
                               _buildDetailRow(
                                 icon: Icons.email,
                                 value: vm.nurse.email ?? "N/A",
                               ),
-
                               _buildDetailRow(
                                 icon: Icons.location_on,
                                 value: vm.nurse.address ?? "N/A",
                               ),
-
                               _buildDetailRow(
                                 icon: Icons.phone,
                                 value: vm.nurse.phone ?? "N/A",
@@ -171,13 +160,14 @@ class NurseDetailsScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 220),
                     ],
                   ),
                 ),
                 if (isMobilePlatform)
                   Positioned(
                     bottom: 25,
-                    right: 20,
+                    right: 0,
                     child: HomeCircleItem(
                       item: HomeItemModel(
                         icon: Icons.phone,
@@ -186,10 +176,8 @@ class NurseDetailsScreen extends StatelessWidget {
                       ),
                       circleSize: 60,
                       iconSize: 30,
-
                       onTap: () async {
                         final phone = vm.nurse.phone;
-
                         if (phone == null || phone.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -198,9 +186,7 @@ class NurseDetailsScreen extends StatelessWidget {
                           );
                           return;
                         }
-
                         final Uri callUri = Uri(scheme: 'tel', path: phone);
-
                         if (await canLaunchUrl(callUri)) {
                           await launchUrl(callUri);
                         } else {
@@ -222,12 +208,10 @@ class NurseDetailsScreen extends StatelessWidget {
   Widget _buildDetailRow({required IconData icon, required String value}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-
       child: Row(
         children: [
           Icon(icon, color: AppColors.blue_200),
           const SizedBox(width: 12),
-
           Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
         ],
       ),
