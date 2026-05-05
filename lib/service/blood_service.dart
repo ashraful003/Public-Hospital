@@ -4,7 +4,7 @@ import '../model/blood_bank_model.dart';
 import 'api_config.dart';
 
 class BloodService {
-  final String baseUrl = "${ApiConfig.baseUrl}";
+  final String baseUrl = ApiConfig.baseUrl;
 
   Future<BloodBankModel?> getProfile(String email) async {
     try {
@@ -52,5 +52,22 @@ class BloodService {
       return BloodBankModel.fromJson(jsonDecode(response.body));
     }
     throw Exception("Failed to update");
+  }
+
+  Future<List<BloodBankModel>> getAllDonors() async {
+    try {
+      final response = await http.get(
+        Uri.parse("${ApiConfig.baseUrl}/blood-list"),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        return data.map((e) => BloodBankModel.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
   }
 }

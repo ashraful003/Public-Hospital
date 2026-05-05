@@ -9,16 +9,6 @@ import 'staff_registration_screen.dart';
 class StaffScreen extends StatelessWidget {
   const StaffScreen({super.key});
 
-  bool get showBackButton {
-    if (kIsWeb) return false;
-
-    return defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.windows ||
-        defaultTargetPlatform == TargetPlatform.macOS ||
-        defaultTargetPlatform == TargetPlatform.linux;
-  }
-
   double _horizontalPadding(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     if (width < 600) return 16;
@@ -50,7 +40,7 @@ class StaffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => StaffViewModel(),
+      create: (_) => StaffViewModel()..init(),
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
 
@@ -58,14 +48,10 @@ class StaffScreen extends StatelessWidget {
           backgroundColor: AppColors.blue_200,
           iconTheme: const IconThemeData(color: Colors.white),
           automaticallyImplyLeading: false,
-          leading: showBackButton
-              ? IconButton(
+          leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          )
-              : null,
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
 
         body: Consumer<StaffViewModel>(
@@ -102,21 +88,20 @@ class StaffScreen extends StatelessWidget {
           },
         ),
 
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const StaffRegistrationScreen(),
+        floatingActionButton: Consumer<StaffViewModel>(
+          builder: (context, vm, child) {
+            if (vm.userRole != 'ADMIN') return const SizedBox();
+
+            return FloatingActionButton.extended(
+              onPressed: () => vm.goToRegistration(context),
+              backgroundColor: AppColors.blue_200,
+              icon: const Icon(Icons.person_add, color: Colors.white),
+              label: const Text(
+                "Registration",
+                style: TextStyle(color: Colors.white),
               ),
             );
           },
-          backgroundColor: AppColors.blue_200,
-          icon: const Icon(Icons.person_add, color: Colors.white),
-          label: const Text(
-            "Registration",
-            style: TextStyle(color: Colors.white),
-          ),
         ),
       ),
     );

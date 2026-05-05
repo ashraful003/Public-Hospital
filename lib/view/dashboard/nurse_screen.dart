@@ -13,7 +13,6 @@ class NurseScreen extends StatelessWidget {
       create: (_) => NurseViewModel(),
       child: Scaffold(
         backgroundColor: const Color(0xffF2F3F7),
-
         appBar: AppBar(
           backgroundColor: AppColors.blue_200,
           title: const Text(
@@ -23,9 +22,11 @@ class NurseScreen extends StatelessWidget {
           centerTitle: true,
           iconTheme: const IconThemeData(color: Colors.white),
         ),
-
         body: Consumer<NurseViewModel>(
           builder: (context, vm, child) {
+            String emptyMessage = vm.selectedTab == NurseTab.all
+                ? "Nurse not found"
+                : "Active nurse not found";
             return Column(
               children: [
                 Container(
@@ -45,11 +46,9 @@ class NurseScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-
                     child: Column(
                       children: [
                         TextField(
@@ -65,22 +64,21 @@ class NurseScreen extends StatelessWidget {
                           ),
                           onChanged: vm.searchByNationalId,
                         ),
-
                         const SizedBox(height: 20),
-
                         Expanded(
-                          child: vm.nurses.isEmpty
-                              ? const Center(
+                          child: vm.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : vm.nurses.isEmpty
+                              ? Center(
                                   child: Text(
-                                    'No Nurse Found',
-                                    style: TextStyle(fontSize: 16),
+                                    emptyMessage,
+                                    style: const TextStyle(fontSize: 16),
                                   ),
                                 )
                               : ListView.builder(
                                   itemCount: vm.nurses.length,
                                   itemBuilder: (context, index) {
                                     final nurse = vm.nurses[index];
-
                                     return Card(
                                       margin: const EdgeInsets.only(bottom: 12),
                                       shape: RoundedRectangleBorder(
@@ -111,18 +109,15 @@ class NurseScreen extends StatelessWidget {
                                                 )
                                               : null,
                                         ),
-
                                         title: Text(
                                           nurse.name ?? "Unknown Nurse",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-
                                         subtitle: Text(
-                                          'National Id: ${nurse.nationalId ?? "N/A"}',
+                                          'Id: ${nurse.nationalId ?? "N/A"}',
                                         ),
-
                                         onTap: () {
                                           Navigator.push(
                                             context,

@@ -104,6 +104,22 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                           child: Text("Doctor Assistant"),
                         ),
                         DropdownMenuItem(
+                          value: UserRole.accountant,
+                          child: Text("Accountant"),
+                        ),
+                        DropdownMenuItem(
+                          value: UserRole.receptionist,
+                          child: Text("Receptionist"),
+                        ),
+                        DropdownMenuItem(
+                          value: UserRole.pharmacist,
+                          child: Text("Pharmacist"),
+                        ),
+                        DropdownMenuItem(
+                          value: UserRole.driver,
+                          child: Text("Driver"),
+                        ),
+                        DropdownMenuItem(
                           value: UserRole.cleaner,
                           child: Text("Cleaning Staff"),
                         ),
@@ -113,7 +129,7 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    if (vm.isDoctor || vm.isNurse)
+                    if (vm.isDoctor || vm.isNurse || vm.isDriver)
                       _buildField(
                         vm.licenseController,
                         "License Number",
@@ -142,18 +158,24 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: vm.isButtonEnabled
-                            ? () {
-                                final user = vm.getStaffUserModel();
+                        onPressed: (!vm.isButtonEnabled || vm.isLoading)
+                            ? null
+                            : () async {
+                                final success = await vm.submitStaff(context);
+                                if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      "${user.name} registered successfully!",
+                                      success
+                                          ? "Registration successful"
+                                          : "Registration failed",
                                     ),
                                   ),
                                 );
-                              }
-                            : null,
+                                if (success) {
+                                  vm.clearFields();
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: vm.isButtonEnabled
                               ? Colors.blue

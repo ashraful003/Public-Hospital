@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:public_hospital/color/app_color.dart';
-import 'package:public_hospital/model/user_model.dart';
-import 'package:public_hospital/viewModel/dashboard/doctor_assistant_details_view_model.dart';
-import 'package:public_hospital/model/home_item_model.dart';
-import 'package:public_hospital/widgets/home_circle_item.dart';
+import '../../color/app_color.dart';
+import '../../model/user_model.dart';
+import '../../model/home_item_model.dart';
+import '../../viewModel/dashboard/driver_details_view_model.dart';
+import '../../widgets/home_circle_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DoctorAssistantDetailsScreen extends StatelessWidget {
-  final UserModel assistant;
+class DriverDetailsScreen extends StatelessWidget {
+  final UserModel driver;
 
-  const DoctorAssistantDetailsScreen({super.key, required this.assistant});
+  const DriverDetailsScreen({super.key, required this.driver});
 
   bool get isMobilePlatform {
     if (kIsWeb) return false;
@@ -22,15 +22,15 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<DoctorAssistantDetailsViewModel>(
-      create: (_) => DoctorAssistantDetailsViewModel(assistant: assistant),
-      child: Consumer<DoctorAssistantDetailsViewModel>(
+    return ChangeNotifierProvider<DriverDetailsViewModel>(
+      create: (_) => DriverDetailsViewModel(driver: driver),
+      child: Consumer<DriverDetailsViewModel>(
         builder: (context, vm, _) {
-          final formattedDate = vm.assistant.dob != null
-              ? DateFormat('dd MMM yyyy').format(vm.assistant.dob!)
+          final formattedDate = vm.driver.dob != null
+              ? DateFormat('dd MMM yyyy').format(vm.driver.dob!)
               : "N/A";
           ImageProvider? _getImage() {
-            final img = vm.assistant.imageUrl;
+            final img = vm.driver.imageUrl;
             if (img == null || img.isEmpty) return null;
             if (img.startsWith("http")) {
               return NetworkImage(img);
@@ -43,7 +43,7 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
             appBar: AppBar(
               backgroundColor: AppColors.blue_200,
               title: const Text(
-                'Profile',
+                'Driver Profile',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -79,7 +79,7 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        vm.assistant.name ?? "Unknown",
+                        vm.driver.name ?? "Unknown Driver",
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -87,29 +87,29 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'ID : ${vm.assistant.nationalId ?? "N/A"}',
+                        'ID: ${vm.driver.nationalId ?? "N/A"}',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
                         ),
                       ),
-                      const SizedBox(height: 7),
+                      const SizedBox(height: 6),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             Icons.circle,
                             size: 12,
-                            color: vm.assistant.isActive!
+                            color: vm.driver.isActive == true
                                 ? Colors.green
                                 : Colors.red,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            vm.assistant.isActive! ? 'Active' : 'Inactive',
+                            vm.driver.isActive == true ? 'Active' : 'Inactive',
                             style: TextStyle(
                               fontSize: 14,
-                              color: vm.assistant.isActive!
+                              color: vm.driver.isActive == true
                                   ? Colors.green
                                   : Colors.red,
                             ),
@@ -127,28 +127,24 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               _buildDetailsRow(
+                                icon: Icons.verified,
+                                value: vm.driver.license ?? "N/A",
+                              ),
+                              _buildDetailsRow(
                                 icon: Icons.cake,
                                 value: formattedDate,
                               ),
                               _buildDetailsRow(
-                                icon: Icons.school,
-                                value: vm.assistant.institute ?? "N/A",
-                              ),
-                              _buildDetailsRow(
-                                icon: Icons.workspace_premium,
-                                value: vm.assistant.degree ?? "N/A",
-                              ),
-                              _buildDetailsRow(
                                 icon: Icons.email,
-                                value: vm.assistant.email ?? "N/A",
+                                value: vm.driver.email ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.location_on,
-                                value: vm.assistant.address ?? "N/A",
+                                value: vm.driver.address ?? "N/A",
                               ),
                               _buildDetailsRow(
                                 icon: Icons.phone,
-                                value: vm.assistant.phone ?? "N/A",
+                                value: vm.driver.phone ?? "N/A",
                               ),
                             ],
                           ),
@@ -160,31 +156,35 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
                 ),
                 if (isMobilePlatform)
                   Positioned(
-                    bottom: 40,
+                    bottom: 20,
                     right: 0,
-                    child: HomeCircleItem(
-                      item: HomeItemModel(
-                        title: '',
-                        icon: Icons.phone,
-                        bgColor: const Color(0xFF7E86E8),
-                      ),
-                      circleSize: 60,
-                      iconSize: 30,
-                      onTap: () async {
-                        final phoneNumber = vm.assistant.phone ?? '';
-                        if (phoneNumber.isEmpty) return;
-                        final Uri callUri = Uri(
-                          scheme: 'tel',
-                          path: phoneNumber,
-                        );
-                        if (await canLaunchUrl(callUri)) {
-                          await launchUrl(callUri);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Cannot call $phoneNumber')),
+                    child: SafeArea(
+                      child: HomeCircleItem(
+                        item: HomeItemModel(
+                          title: '',
+                          icon: Icons.phone,
+                          bgColor: const Color(0xFF7E86E8),
+                        ),
+                        circleSize: 60,
+                        iconSize: 30,
+                        onTap: () async {
+                          final phoneNumber = vm.driver.phone ?? '';
+                          if (phoneNumber.isEmpty) return;
+                          final Uri callUri = Uri(
+                            scheme: 'tel',
+                            path: phoneNumber,
                           );
-                        }
-                      },
+                          if (await canLaunchUrl(callUri)) {
+                            await launchUrl(callUri);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Cannot call $phoneNumber'),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ),
               ],
@@ -202,7 +202,23 @@ class DoctorAssistantDetailsScreen extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.blue_200),
           const SizedBox(width: 12),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

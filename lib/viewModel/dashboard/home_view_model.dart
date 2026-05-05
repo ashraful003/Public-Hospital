@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../model/home_item_model.dart';
 import '../../view/dashboard/admission_screen.dart';
+import '../../view/dashboard/ambulance_screen.dart';
 import '../../view/dashboard/appointment_screen.dart';
 import '../../view/dashboard/blood_donor_screen.dart';
 import '../../view/dashboard/search_prescription_screen.dart';
@@ -343,7 +344,13 @@ class HomeViewModel extends ChangeNotifier {
         _navigate(context, const StaffScreen());
         break;
       case "Blood Bank":
-        _navigate(context, const BloodBankScreen());
+        _navigate(context, const BloodDonorScreen());
+        break;
+      case "Ambulance":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AmbulanceScreen()),
+        );
         break;
       default:
         _showToast(item.title);

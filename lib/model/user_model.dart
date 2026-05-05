@@ -52,8 +52,8 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      nationalId: json["nationalId"]?.toString(),
-      name: json["name"],
+      nationalId: json["nationalId"]?.toString() ?? '',
+      name: json["name"] ?? '',
       email: json["email"],
       phone: json["phone"],
       address: json["address"],
@@ -65,7 +65,7 @@ class UserModel {
       degree: json["degree"],
       license: json["license"],
       specialist: json["specialist"],
-      isActive: json["isActive"],
+      isActive: json["isActive"] ?? false,
       dob: json["dob"] != null ? DateTime.tryParse(json["dob"]) : null,
       role: _parseRole(json["role"]),
     );

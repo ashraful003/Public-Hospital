@@ -46,9 +46,9 @@ class DoctorDetailsScreen extends StatelessWidget {
               automaticallyImplyLeading: false,
               leading: showBackButton
                   ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              )
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                    )
                   : null,
             ),
             body: SingleChildScrollView(
@@ -58,12 +58,12 @@ class DoctorDetailsScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: d.imageUrl != null &&
-                        d.imageUrl!.isNotEmpty
+                    backgroundImage:
+                        d.imageUrl != null && d.imageUrl!.isNotEmpty
                         ? d.imageUrl!.startsWith('http')
-                        ? NetworkImage(d.imageUrl!) as ImageProvider
-                        : AssetImage(d.imageUrl!) as ImageProvider
-                        : const AssetImage('assets/doctor_placeholder.png'),
+                              ? NetworkImage(d.imageUrl!) as ImageProvider
+                              : AssetImage(d.imageUrl!) as ImageProvider
+                        : const AssetImage('assets/images/person.png'),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -101,7 +101,6 @@ class DoctorDetailsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -154,40 +153,35 @@ class DoctorDetailsScreen extends StatelessWidget {
             ),
             floatingActionButton: isMobile
                 ? HomeCircleItem(
-              item: HomeItemModel(
-                icon: Icons.phone,
-                bgColor: const Color(0xFF7E86E8),
-                title: '',
-              ),
-              circleSize: 60,
-              iconSize: 30,
-              onTap: () async {
-                final phoneNumber = d.phone ?? "";
-                if (phoneNumber.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Phone number not available'),
+                    item: HomeItemModel(
+                      icon: Icons.phone,
+                      bgColor: const Color(0xFF7E86E8),
+                      title: '',
                     ),
-                  );
-                  return;
-                }
-                final Uri callUri = Uri(
-                  scheme: 'tel',
-                  path: phoneNumber,
-                );
-                if (await canLaunchUrl(callUri)) {
-                  await launchUrl(callUri);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Cannot make a call to $phoneNumber',
-                      ),
-                    ),
-                  );
-                }
-              },
-            )
+                    circleSize: 60,
+                    iconSize: 30,
+                    onTap: () async {
+                      final phoneNumber = d.phone ?? "";
+                      if (phoneNumber.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Phone number not available'),
+                          ),
+                        );
+                        return;
+                      }
+                      final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
+                      if (await canLaunchUrl(callUri)) {
+                        await launchUrl(callUri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Cannot make a call to $phoneNumber'),
+                          ),
+                        );
+                      }
+                    },
+                  )
                 : null,
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           );

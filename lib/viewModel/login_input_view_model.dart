@@ -27,9 +27,8 @@ class LoginInputViewModel extends ChangeNotifier {
   void _validateForm() {
     final isValid =
         emailController.text.trim().isNotEmpty &&
-            passwordController.text.trim().isNotEmpty &&
-            rememberMe;
-
+        passwordController.text.trim().isNotEmpty &&
+        rememberMe;
     if (isButtonEnable != isValid) {
       isButtonEnable = isValid;
       notifyListeners();
@@ -65,33 +64,25 @@ class LoginInputViewModel extends ChangeNotifier {
 
   Future<String?> login() async {
     if (!isButtonEnable || isLoading) return null;
-
     isLoading = true;
     notifyListeners();
-
     try {
       final email = emailController.text.trim();
       final password = passwordController.text.trim();
-
       final response = await _authService.login(
         email: email,
         password: password,
       );
-
       final token = response["accessToken"] ?? response["token"];
       if (token == null || token.toString().isEmpty) {
         throw Exception("Token not found");
       }
-
       Map<String, dynamic> decodedToken = {};
       String? role;
-
       try {
         decodedToken = JwtDecoder.decode(token);
         debugPrint("Decoded Token: $decodedToken");
-
         role = decodedToken["role"]?.toString();
-
         if (role == null || role.isEmpty) {
           final authorities = decodedToken["authorities"];
           if (authorities is List && authorities.isNotEmpty) {
@@ -101,9 +92,7 @@ class LoginInputViewModel extends ChangeNotifier {
       } catch (e) {
         debugPrint("JWT decode failed: $e");
       }
-
       role ??= response["role"]?.toString() ?? response["ROLE"]?.toString();
-
       if (role == null || role.isEmpty) {
         throw Exception("Role not found");
       }
@@ -117,7 +106,6 @@ class LoginInputViewModel extends ChangeNotifier {
       } else {
         await SharedPrefService.clearRememberMe();
       }
-
       return role;
     } finally {
       isLoading = false;
