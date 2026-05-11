@@ -14,6 +14,7 @@ enum UserRole {
 }
 
 class UserModel {
+  final int? id;
   final String? nationalId;
   final String? name;
   final String? email;
@@ -32,6 +33,7 @@ class UserModel {
   final UserRole? role;
 
   UserModel({
+    this.id,
     this.nationalId,
     this.name,
     this.email,
@@ -52,6 +54,7 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      id: json["id"],
       nationalId: json["nationalId"]?.toString() ?? '',
       name: json["name"] ?? '',
       email: json["email"],
@@ -66,7 +69,9 @@ class UserModel {
       license: json["license"],
       specialist: json["specialist"],
       isActive: json["isActive"] ?? false,
-      dob: json["dob"] != null ? DateTime.tryParse(json["dob"]) : null,
+      dob: json["dob"] != null
+          ? DateTime.tryParse(json["dob"])
+          : null,
       role: _parseRole(json["role"]),
     );
   }
@@ -103,6 +108,7 @@ class UserModel {
   }
 
   UserModel copyWith({
+    int? id,
     String? nationalId,
     String? name,
     String? email,
@@ -121,6 +127,7 @@ class UserModel {
     UserRole? role,
   }) {
     return UserModel(
+      id: id ?? this.id,
       nationalId: nationalId ?? this.nationalId,
       name: name ?? this.name,
       email: email ?? this.email,
@@ -173,6 +180,7 @@ class UserModel {
 
   Map<String, dynamic> toJson() {
     return {
+      "id": id,
       "nationalId": nationalId,
       "name": name,
       "email": email,
@@ -200,7 +208,8 @@ class UserModel {
     int age = today.year - dob!.year;
 
     if (today.month < dob!.month ||
-        (today.month == dob!.month && today.day < dob!.day)) {
+        (today.month == dob!.month &&
+            today.day < dob!.day)) {
       age--;
     }
     return age;

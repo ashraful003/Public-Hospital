@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:public_hospital/view/dashboard/medicine_screen.dart';
+import 'package:public_hospital/view/dashboard/pharmaceutical_screen.dart';
 import '../../model/home_item_model.dart';
 import '../../view/dashboard/admission_screen.dart';
 import '../../view/dashboard/ambulance_screen.dart';
@@ -38,7 +40,7 @@ class HomeViewModel extends ChangeNotifier {
       "Ambulance",
       "Booking",
       "Diagnostic\nCenter",
-      "Medicine\nCompany",
+      "Pharmaceutical",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -201,7 +203,6 @@ class HomeViewModel extends ChangeNotifier {
     "pharmaceutical": [
       "Emergency",
       "Facility",
-      "Medicine\nCompany",
       "Medicine\nStore",
       "Parking",
     ],
@@ -302,7 +303,7 @@ class HomeViewModel extends ChangeNotifier {
         bgColor: Colors.blue,
       ),
       HomeItemModel(
-        title: "Medicine\nCompany",
+        title: "Pharmaceutical",
         icon: Icons.medical_services,
         bgColor: Colors.blue,
       ),
@@ -339,6 +340,12 @@ class HomeViewModel extends ChangeNotifier {
         break;
       case "Prescription":
         _navigate(context, const SearchPrescriptionScreen());
+        break;
+      case "Pharmaceutical":
+        _navigate(context, const PharmaceuticalScreen());
+        break;
+      case "Medicine\nStore":
+        _navigate(context, const MedicineScreen());
         break;
       case "Staff":
         _navigate(context, const StaffScreen());
