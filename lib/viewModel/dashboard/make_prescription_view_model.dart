@@ -1,177 +1,158 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../model/user_model.dart';
-import '../../view/dashboard/make_pdf_service.dart';
+import '../../service/prescription_service.dart';
 
 class MakePrescriptionViewModel extends ChangeNotifier {
+  final PrescriptionService _service = PrescriptionService();
   UserModel? doctor;
   UserModel? patient;
-  final weightController = TextEditingController();
-  final problemsController = TextEditingController();
-  final bpController = TextEditingController();
-  final medicineController = TextEditingController();
-  bool isPdfGenerated = false;
+  bool isLoading = false;
   bool isSubmitting = false;
-  bool isSubmitted = false;
-  String? errorMessage;
+  String? error;
+  String? successMessage;
+  List<String> medicineTypes = [];
+  List<String> medicines = [];
+  List<String> doses = [];
+  List<String> doseTimes = [];
+  List<String> durations = [];
+  List<String> tests = [];
+  List<String> nextMeetList = [];
+  List<String> adviceList = [];
+  final problemController = TextEditingController();
+  final bpController = TextEditingController();
+  final weightController = TextEditingController();
+  final nextMeetController = TextEditingController();
+  final pulseController = TextEditingController();
+  final temperatureController = TextEditingController();
+  final adviceController = TextEditingController();
 
-  void loadDoctor() {
-    doctor = UserModel(
-      nationalId: "D-001",
-      name: "Associate Prof. Dr. Md. Ashraful Alam",
-      email: "doctor@hospital.com",
-      phone: "01647000000",
-      address: "Panthapath, Dhaka",
-      dob: DateTime(1980, 5, 15),
-      institute: "Dhaka Medical College & Hospital",
-      degree: "MBBS, FCPS (Pediatrics)",
-      specialist: "Cardiologist",
-      isActive: true,
-    );
-
-    notifyListeners();
-  }
-
-  void loadPatient(String nationalId) {
-    patient = UserModel(
-      nationalId: nationalId,
-      name: "MD. Ashraful Alam",
-      address: "Dhaka",
-      dob: DateTime(1997, 12, 12),
-      weight: "",
-      role: UserRole.patient,
-    );
-
-    notifyListeners();
-  }
-
-  List<String> _getMedicineList() {
-    return medicineController.text
-        .split('\n')
-        .map((m) => m.trim())
-        .where((m) => m.isNotEmpty)
-        .toList();
-  }
-
-  bool _validateForm() {
-    if (doctor == null || patient == null) {
-      errorMessage = "Doctor or Patient not loaded";
-      return false;
-    }
-    if (weightController.text.trim().isEmpty) {
-      errorMessage = "Please enter patient weight";
-      return false;
-    }
-    if (problemsController.text.trim().isEmpty) {
-      errorMessage = "Please enter patient problems";
-      return false;
-    }
-    if (_getMedicineList().isEmpty) {
-      errorMessage = "Please add at least one medicine";
-      return false;
-    }
-    return true;
-  }
-
-  Future<void> generatePrescription() async {
-    if (!_validateForm()) {
-      notifyListeners();
-      return;
-    }
-
-    await MakePdfService.generatePrescription(
-      doctor: doctor!,
-      patient: patient!,
-      weight: weightController.text,
-      problems: problemsController.text,
-      bloodPressure: bpController.text,
-      medicines: _getMedicineList(),
-    );
-
-    isPdfGenerated = true;
-    errorMessage = null;
-    notifyListeners();
-  }
-
-  Future<bool> submitToServer() async {
-    if (!_validateForm()) {
-      notifyListeners();
-      return false;
-    }
-
-    isSubmitting = true;
-    errorMessage = null;
-    notifyListeners();
-
+  Future<void> load(String patientId) async {
     try {
+      isLoading = true;
+      notifyListeners();
+      doctor = await _service.loadCurrentDoctor();
+      patient = await _service.loadPatient(patientId);
+      adviceList = await _service.loadAdvice(doctor!.nationalId!);
+      medicines = await _service.loadMedicines();
+      if (doctor?.nationalId != null && doctor!.nationalId!.trim().isNotEmpty) {
+        medicineTypes = await _service.loadMedicineTypes(doctor!.nationalId!);
+        doses = await _service.loadDoses(doctor!.nationalId!);
+        doseTimes = await _service.loadDoseTimes(doctor!.nationalId!);
+        durations = await _service.loadDurations(doctor!.nationalId!);
+        adviceList = await _service.loadAdvice(doctor!.nationalId!);
+        nextMeetList = await _service.loadNextMeet(doctor!.nationalId!);
+      }
+      tests = await _service.loadTests();
+      weightController.text = patient?.weight ?? "";
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      isLoading = false;
+      error = "Load failed: $e";
+      notifyListeners();
+    }
+  }
+
+  Future<bool> submit({required List rxList, required List testList}) async {
+    if (doctor == null || patient == null) {
+      error = "Doctor or Patient not loaded";
+      notifyListeners();
+      return false;
+    }
+    final validRx = rxList
+        .where(
+          (e) =>
+              e.type.toString().trim().isNotEmpty &&
+              e.medicine.toString().trim().isNotEmpty &&
+              e.dose.toString().trim().isNotEmpty &&
+              e.doseTime.toString().trim().isNotEmpty &&
+              e.duration.toString().trim().isNotEmpty,
+        )
+        .toList();
+    final validTests = testList
+        .where((e) => e.test.toString().trim().isNotEmpty)
+        .toList();
+    if (validRx.isEmpty) {
+      error = "Please add at least one medicine";
+      notifyListeners();
+      return false;
+    }
+    try {
+      isSubmitting = true;
+      error = null;
+      successMessage = null;
+      notifyListeners();
       final body = {
-        "doctor": {
-          "name": doctor!.name,
-          "degree": doctor!.degree,
-          "specialist": doctor!.specialist,
-          "hospital": doctor!.institute,
-          "phone": doctor!.phone,
-        },
-        "patient": {
-          "name": patient!.name,
-          "nationalId": patient!.nationalId,
-          "age": patient!.dob != null
-              ? DateTime.now().year - patient!.dob!.year
-              : null,
-          "weight": weightController.text,
-        },
-        "complaints": problemsController.text,
-        "bloodPressure": bpController.text,
-        "medicines": _getMedicineList(),
+        "doctorName": doctor?.name ?? "",
+        "doctorDegree": doctor?.degree ?? "",
+        "doctorSpecialist": doctor?.specialist ?? "",
+        "doctorInstitute": doctor?.institute ?? "",
+        "doctorLicense": doctor?.license ?? "",
+        "patientId": patient?.nationalId ?? "",
+        "patientName": patient?.name ?? "",
+        "patientAge": patient?.age ?? "",
+        "patientWeight": weightController.text.trim(),
+        "problems": problemController.text.trim(),
+        "bloodPressure": bpController.text.trim(),
+        "pulse": pulseController.text.trim(),
+        "temperature": temperatureController.text.trim(),
+        "medicines": validRx.map((e) {
+          return {
+            "type": e.type,
+            "medicine": e.medicine,
+            "dose": e.dose,
+            "doseTime": e.doseTime,
+            "duration": e.duration,
+          };
+        }).toList(),
+        "advice": adviceController.text.trim(),
+        "tests": validTests.map((e) => e.test.toString()).toList(),
+        "nextMeet": nextMeetController.text.trim(),
         "date": DateTime.now().toIso8601String(),
       };
-
-      const apiUrl = "https://your-server.com/api/prescriptions";
-
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        isSubmitted = true;
+      final ok = await _service.createPrescription(body);
+      if (ok) {
+        successMessage = "Prescription submitted successfully";
+        clearAllFields(rxList, testList);
         isSubmitting = false;
-        errorMessage = null;
-        _clearForm();
         notifyListeners();
         return true;
       } else {
+        error = "Prescription submit failed";
         isSubmitting = false;
-        isSubmitted = false;
-        errorMessage = "Server error: ${response.statusCode}";
         notifyListeners();
         return false;
       }
     } catch (e) {
       isSubmitting = false;
-      isSubmitted = false;
-      errorMessage = "Network error: $e";
+      error = "Error: $e";
       notifyListeners();
       return false;
     }
   }
 
-  void _clearForm() {
-    weightController.clear();
-    problemsController.clear();
+  void clearAllFields(List rxList, List testList) {
+    problemController.clear();
     bpController.clear();
-    medicineController.clear();
-    isPdfGenerated = false;
+    pulseController.clear();
+    temperatureController.clear();
+    adviceController.clear();
+    nextMeetController.clear();
+    rxList.clear();
+    testList.clear();
+    notifyListeners();
   }
 
   @override
+  @override
   void dispose() {
-    weightController.dispose();
-    problemsController.dispose();
+    problemController.dispose();
     bpController.dispose();
-    medicineController.dispose();
+    pulseController.dispose();
+    temperatureController.dispose();
+    weightController.dispose();
+    adviceController.dispose();
+    nextMeetController.dispose();
     super.dispose();
   }
 }

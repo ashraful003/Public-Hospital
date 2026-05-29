@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:public_hospital/viewModel/dashboard/search_prescription_view_model.dart';
-import 'prescription_screen.dart';
+import 'package:public_hospital/view/dashboard/activity_screen.dart';
+import '../../viewModel/dashboard/search_doctor_activity_view_model.dart';
 
-class SearchPrescriptionScreen extends StatelessWidget {
+class SearchDoctorActivityScreen extends StatelessWidget {
   final String role;
 
-  const SearchPrescriptionScreen({super.key, required this.role});
+  const SearchDoctorActivityScreen({super.key, required this.role});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => SearchPrescriptionViewModel(),
+      create: (_) => SearchDoctorActivityViewModel(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Search Prescription'),
+          title: const Text('Search Doctor Activity'),
           centerTitle: true,
         ),
-        body: Consumer<SearchPrescriptionViewModel>(
-          builder: (context, viewModel, child) {
-            final hasError = viewModel.isNotFound;
+        body: Consumer<SearchDoctorActivityViewModel>(
+          builder: (context, vm, child) {
+            final hasError = vm.isNotFound;
             return Padding(
               padding: const EdgeInsets.only(left: 20, right: 20, top: 70),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
-                    controller: viewModel.searchController,
+                    controller: vm.searchController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Enter Patient ID',
+                      labelText: 'Enter Doctor ID',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -48,37 +48,34 @@ class SearchPrescriptionScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    onChanged: viewModel.updateInput,
+                    onChanged: vm.updateInput,
                   ),
                   if (hasError)
                     const Padding(
                       padding: EdgeInsets.only(top: 8, left: 4),
                       child: Text(
-                        "User not found",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        "Doctor not found",
+                        style: TextStyle(color: Colors.red, fontSize: 13),
                       ),
                     ),
                   const SizedBox(height: 20),
-                  if (viewModel.searchController.text.isNotEmpty)
+                  if (vm.searchController.text.isNotEmpty)
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: viewModel.isLoading
+                        onPressed: vm.isLoading
                             ? null
                             : () async {
-                                final patientId = await viewModel
-                                    .searchPrescription(context);
+                                final patientId = await vm.searchDoctor(
+                                  context,
+                                );
                                 if (patientId != null && context.mounted) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => PrescriptionScreen(
-                                        patientId: patientId,
+                                      builder: (_) => ActivityScreen(
+                                        nationalId: patientId,
                                         role: role,
                                       ),
                                     ),
@@ -91,7 +88,7 @@ class SearchPrescriptionScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: viewModel.isLoading
+                        child: vm.isLoading
                             ? const CircularProgressIndicator(
                                 color: Colors.white,
                               )

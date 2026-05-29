@@ -1,9 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../service/api_config.dart';
 
-class SearchPrescriptionViewModel extends ChangeNotifier {
+class SearchDoctorActivityViewModel extends ChangeNotifier {
   final TextEditingController searchController = TextEditingController();
   bool isLoading = false;
   bool isNotFound = false;
@@ -13,24 +12,24 @@ class SearchPrescriptionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> searchPrescription(BuildContext context) async {
-    final patientId = searchController.text.trim();
-    if (patientId.isEmpty) {
+  Future<String?> searchDoctor(BuildContext context) async {
+    final doctorId = searchController.text.trim();
+    if (doctorId.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter patient ID')));
+      ).showSnackBar(const SnackBar(content: Text('Please enter doctor ID')));
       return null;
     }
     try {
       isLoading = true;
       isNotFound = false;
       notifyListeners();
-      final url = Uri.parse('${ApiConfig.baseUrl}/users/$patientId');
+      final url = Uri.parse('${ApiConfig.baseUrl}/users/$doctorId');
       final response = await http.get(url);
       isLoading = false;
       notifyListeners();
       if (response.statusCode == 200) {
-        return patientId;
+        return doctorId;
       } else {
         isNotFound = true;
         notifyListeners();

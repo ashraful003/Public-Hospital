@@ -2,24 +2,26 @@ import 'package:flutter/material.dart';
 import '../../model/prescription_model.dart';
 import '../../service/prescription_service.dart';
 
-class PrescriptionViewModel extends ChangeNotifier {
+class PrescriptionDetailViewModel extends ChangeNotifier {
   final PrescriptionService _service = PrescriptionService();
-  List<PrescriptionModel> prescriptions = [];
+  PrescriptionModel? prescription;
   bool isLoading = false;
   String? error;
 
-  Future<void> loadPrescriptions(String patientId) async {
+  Future<void> loadById(int id) async {
     try {
       isLoading = true;
       error = null;
+      prescription = null;
       notifyListeners();
-      final result = await _service.getPrescriptionsByPatient(patientId);
-      result.sort((a, b) => b.date.compareTo(a.date));
-      prescriptions = result;
+      final data = await _service.getPrescriptionById(id);
+      prescription = data;
+      isLoading = false;
+      notifyListeners();
     } catch (e) {
+      isLoading = false;
       error = e.toString();
+      notifyListeners();
     }
-    isLoading = false;
-    notifyListeners();
   }
 }

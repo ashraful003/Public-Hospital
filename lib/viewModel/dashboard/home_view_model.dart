@@ -1,14 +1,20 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:public_hospital/data/shared_pref_service.dart';
+import 'package:public_hospital/model/home_item_model.dart';
+import 'package:public_hospital/model/user_model.dart';
+import 'package:public_hospital/service/api_client.dart';
+import 'package:public_hospital/service/api_config.dart';
+import 'package:public_hospital/view/dashboard/admission_screen.dart';
+import 'package:public_hospital/view/dashboard/ambulance_screen.dart';
+import 'package:public_hospital/view/dashboard/appointment_screen.dart';
+import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_screen.dart';
 import 'package:public_hospital/view/dashboard/pharmaceutical_screen.dart';
-import '../../model/home_item_model.dart';
-import '../../view/dashboard/admission_screen.dart';
-import '../../view/dashboard/ambulance_screen.dart';
-import '../../view/dashboard/appointment_screen.dart';
-import '../../view/dashboard/blood_donor_screen.dart';
-import '../../view/dashboard/search_prescription_screen.dart';
-import '../../view/dashboard/staff_screen.dart';
+import 'package:public_hospital/view/dashboard/prescription_screen.dart';
+import 'package:public_hospital/view/dashboard/search_prescription_screen.dart';
+import 'package:public_hospital/view/dashboard/staff_screen.dart';
 
 class HomeSection {
   final List<HomeItemModel> items;
@@ -21,6 +27,44 @@ class HomeViewModel extends ChangeNotifier {
 
   HomeViewModel(this.role) {
     _init();
+    loadCurrentUser();
+  }
+
+  UserModel? currentUser;
+  bool isLoading = false;
+
+  Future<void> loadCurrentUser() async {
+    try {
+      isLoading = true;
+      notifyListeners();
+      final email =
+          SharedPrefService.getString("remember_email") ??
+          SharedPrefService.getString("user_email");
+      final savedRole =
+          SharedPrefService.getString("role") ??
+          SharedPrefService.getString("user_role") ??
+          role;
+      if (email == null || email.isEmpty) {
+        debugPrint("Email not found");
+        return;
+      }
+      final url = "${ApiConfig.baseUrl}/profile?email=$email&role=$savedRole";
+      final response = await ApiClient.get(url);
+      final json = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        currentUser = UserModel.fromJson(json);
+      } else {
+        Fluttertoast.showToast(
+          msg: json["message"] ?? "Failed to load profile",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } catch (e) {
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   final Map<String, List<String>> roleAccess = {
@@ -200,13 +244,8 @@ class HomeViewModel extends ChangeNotifier {
       "Parking",
       "Staff",
     ],
-    "pharmaceutical": [
-      "Emergency",
-      "Facility",
-      "Medicine\nStore",
-      "Parking",
-    ],
-    "diagnosticCenter": ["Emergency", "Report", "Facility", "Parking"],
+    "pharmaceutical": ["Emergency", "Facility", "Medicine\nStore", "Parking"],
+    "diagnostic_center": ["Emergency", "Report", "Facility", "Parking"],
   };
 
   List<HomeItemModel> get topItems {
@@ -226,13 +265,6 @@ class HomeViewModel extends ChangeNotifier {
     return _filterItems(items);
   }
 
-  final HomeItemModel staffButton = HomeItemModel(
-    title: "Staff",
-    icon: Icons.groups,
-    bgColor: Colors.deepPurple,
-  );
-
-  bool get showStaffButton => roleAccess[role]?.contains("Staff") ?? false;
   late List<HomeSection> sections;
 
   void _init() {
@@ -326,8 +358,10 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   List<HomeItemModel> _filterItems(List<HomeItemModel> items) {
-    final allowed = roleAccess[role] ?? [];
-    return items.where((item) => allowed.contains(item.title)).toList();
+    final allowed = roleAccess[role.toLowerCase()] ?? [];
+    return items.where((item) {
+      return allowed.contains(item.title);
+    }).toList();
   }
 
   void onItemTap(BuildContext context, HomeItemModel item) {
@@ -339,7 +373,17 @@ class HomeViewModel extends ChangeNotifier {
         _navigate(context, AdmissionScreen(role: role));
         break;
       case "Prescription":
-        _navigate(context, const SearchPrescriptionScreen());
+        if (role.toLowerCase() == "doctor") {
+          _navigate(context, SearchPrescriptionScreen(role: role));
+        } else {
+          _navigate(
+            context,
+            PrescriptionScreen(
+              patientId: currentUser?.nationalId ?? "",
+              role: role,
+            ),
+          );
+        }
         break;
       case "Pharmaceutical":
         _navigate(context, const PharmaceuticalScreen());
@@ -354,10 +398,7 @@ class HomeViewModel extends ChangeNotifier {
         _navigate(context, const BloodDonorScreen());
         break;
       case "Ambulance":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AmbulanceScreen()),
-        );
+        _navigate(context, const AmbulanceScreen());
         break;
       default:
         _showToast(item.title);

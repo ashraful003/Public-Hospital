@@ -2,7 +2,7 @@ class DrawerItemModel {
   final String title;
   final String routeName;
   final int index;
-  final String? iconName;
+  final String iconName;
 
   DrawerItemModel({
     required this.title,
