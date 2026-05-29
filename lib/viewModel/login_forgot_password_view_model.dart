@@ -38,7 +38,7 @@ class LoginForgotPasswordViewModel extends ChangeNotifier {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
-      return UserModel(email: email);
+      return UserModel(email: email, name: '');
     } catch (e) {
       errorMessage = e.toString();
       notifyListeners();

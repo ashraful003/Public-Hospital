@@ -43,18 +43,17 @@ class HomeScreen extends StatelessWidget {
             double padding = _horizontalPadding(context);
             return Stack(
               children: [
-                Container(height: 145, color: AppColors.blue_200),
+                Container(height: 165, color: AppColors.blue_200),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 38),
-                    _buildHeader(context, padding),
+                    _buildHeader(context, vm, padding),
                     const SizedBox(height: 8),
                     _buildTopItems(context, vm, padding),
                     const SizedBox(height: 28),
                     Expanded(
-                      child:
-                          vm.sections.isEmpty || vm.sections.first.items.isEmpty
+                      child: vm.sections.isEmpty
                           ? const Center(child: Text("No data available"))
                           : SingleChildScrollView(
                               padding: const EdgeInsets.only(bottom: 20),
@@ -84,27 +83,39 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, double padding) {
+  Widget _buildHeader(BuildContext context, HomeViewModel vm, double padding) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: padding),
-      child: Builder(
-        builder: (menuContext) => Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(menuContext).openDrawer(),
+      child: Row(
+        children: [
+          Builder(
+            builder: (menuContext) {
+              return IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () {
+                  Scaffold.of(menuContext).openDrawer();
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Public Hospital",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
-            const SizedBox(width: 5),
-            const Text(
-              "Public Hospital",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -134,7 +145,9 @@ class HomeScreen extends StatelessWidget {
             return Expanded(
               child: HomeCircleItem(
                 item: item,
-                onTap: () => vm.onItemTap(context, item),
+                onTap: () {
+                  vm.onItemTap(context, item);
+                },
               ),
             );
           }).toList(),
@@ -144,9 +157,6 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _gridSection(List items, HomeViewModel vm, BuildContext context) {
-    if (items.isEmpty) {
-      return const Center(child: Text("No items"));
-    }
     return GridView.builder(
       itemCount: items.length,
       shrinkWrap: true,
@@ -161,7 +171,9 @@ class HomeScreen extends StatelessWidget {
       itemBuilder: (context, index) {
         return HomeCircleItem(
           item: items[index],
-          onTap: () => vm.onItemTap(context, items[index]),
+          onTap: () {
+            vm.onItemTap(context, items[index]);
+          },
         );
       },
     );

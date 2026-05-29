@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:public_hospital/view/dashboard/blood_profile_screen.dart';
@@ -27,7 +26,6 @@ class ProfileScreen extends StatelessWidget {
             );
           }
           if (vm.user == null) {
-            final email = SharedPrefService.getString("remember_email");
             return Scaffold(
               body: Center(
                 child: Padding(
@@ -272,22 +270,28 @@ class ProfileScreen extends StatelessWidget {
   }
 
   bool canSeeAttendance(String role) {
-    final r = role.toLowerCase();
+    final r = role.trim().toLowerCase().replaceAll(" ", "_");
     const allowedRoles = [
       'admin',
       'doctor',
+      'doctor_assistant',
+      'assistant',
       'nurse',
-      'doctorassistant',
       'cleaner',
       'accountant',
       'pharmacist',
       'receptionist',
       'driver',
     ];
-    const blockedRoles = ['patient', 'pharmaceutical', 'diagnosticcenter'];
-    if (blockedRoles.contains(r)) return false;
-    if (allowedRoles.contains(r)) return true;
-
-    return false;
+    const blockedRoles = [
+      'patient',
+      'pharmaceutical',
+      'diagnosticcenter',
+      'diagnostic_center',
+    ];
+    if (blockedRoles.contains(r)) {
+      return false;
+    }
+    return allowedRoles.contains(r);
   }
 }

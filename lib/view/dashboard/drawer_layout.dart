@@ -13,90 +13,156 @@ class DrawerLayout extends StatelessWidget {
       child: Consumer<DrawerViewModel>(
         builder: (context, vm, child) {
           return Drawer(
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  decoration: BoxDecoration(color: AppColors.blue100),
-                  child: const Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: NetworkImage(
-                          "https://i.pravatar.cc/150?img=3",
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        "Ashraful Alam",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "ashraful1510178@gmail.com",
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ...vm.drawerItems.map((item) {
-                  bool isSelected = vm.selectedIndex == item.index;
-
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 30,
                     ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: isSelected
-                          ? AppColors.blue100.withOpacity(0.2)
-                          : Colors.transparent,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.blue100,
+                          AppColors.blue100.withOpacity(0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                     ),
-                    child: ListTile(
-                      leading: Icon(
-                        vm.getIcon(item.iconName),
-                        color: item.title == "Logout"
-                            ? Colors.red
-                            : (isSelected
+                    child: vm.isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          )
+                        : Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 45,
+                                backgroundColor: Colors.white,
+                                backgroundImage: vm.imageUrl.isNotEmpty
+                                    ? NetworkImage(vm.imageUrl)
+                                    : null,
+                                child: vm.imageUrl.isEmpty
+                                    ? const Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                vm.userName,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                vm.email,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: vm.drawerItems.length,
+                      itemBuilder: (context, index) {
+                        final item = vm.drawerItems[index];
+                        final isLogout = item.iconName == "logout";
+                        final isSelected = vm.selectedIndex == item.index;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: isSelected
+                                ? AppColors.blue100.withOpacity(0.15)
+                                : Colors.transparent,
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              vm.getIcon(item.iconName),
+                              color: isLogout
+                                  ? Colors.red
+                                  : isSelected
                                   ? AppColors.blue100
-                                  : Colors.grey[700]),
-                      ),
-                      title: Text(
-                        item.title,
-                        style: TextStyle(
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.bold,
-                          color: isSelected
-                              ? AppColors.blue100
-                              : Colors.black87,
-                        ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onTap: () {
-                        vm.selectItem(item.index);
-                        vm.showToast('${item.title} clicked');
-                        Navigator.pop(context);
+                                  : Colors.grey.shade700,
+                            ),
+                            title: Text(item.title),
+                            onTap: () async {
+                              vm.selectItem(item.index);
+                              final isLogout = item.iconName == "logout";
+                              if (isLogout) {
+                                _showLogoutDialog(context, vm);
+                                return;
+                              }
+                              Navigator.pop(context);
+                              await Future.delayed(
+                                const Duration(milliseconds: 150),
+                              );
+                              await vm.handleNavigation(context, item);
+                              vm.showToast("${item.title} clicked");
+                            },
+                          ),
+                        );
                       },
                     ),
-                  );
-                }).toList(),
-
-                const Spacer(),
-                const Divider(),
-              ],
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, DrawerViewModel vm) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Logout"),
+          content: const Text("Are you sure to logout?"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
+              child: const Text("No"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await Future.delayed(const Duration(milliseconds: 100));
+                await vm.logout(context);
+              },
+              child: const Text("Yes"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
