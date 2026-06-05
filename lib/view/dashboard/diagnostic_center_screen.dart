@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:public_hospital/view/dashboard/pharmaceutical_register_screen.dart';
+import 'package:public_hospital/view/dashboard/diagnostic_center_register_screen.dart';
 import '../../color/app_color.dart';
-import '../../viewModel/dashboard/pharmaceutical_view_model.dart';
 import '../../model/user_model.dart';
-import 'pharmaceutical_details_screen.dart';
+import '../../service/api_config.dart';
+import '../../service/diagnostic_center_service.dart';
+import '../../viewModel/dashboard/diagnostic_center_view_model.dart';
+import 'diagnostic_center_details_screen.dart';
 
-class PharmaceuticalScreen extends StatelessWidget {
-  const PharmaceuticalScreen({super.key});
+class DiagnosticCenterScreen extends StatelessWidget {
+  const DiagnosticCenterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PharmaceuticalViewModel()..loadPharmaceuticals(),
-      child: const _PharmaceuticalView(),
+      create: (_) => DiagnosticCenterViewModel(
+        service: DiagnosticCenterService(baseUrl: ApiConfig.baseUrl),
+      )..loadDiagnosticCenters(),
+      child: const _View(),
     );
   }
 }
 
-class _PharmaceuticalView extends StatelessWidget {
-  const _PharmaceuticalView();
+class _View extends StatelessWidget {
+  const _View();
 
   ImageProvider? _getImage(String? url) {
     if (url == null || url.isEmpty) return null;
@@ -31,20 +35,19 @@ class _PharmaceuticalView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PharmaceuticalViewModel>(
-      builder: (context, vm, child) {
+    return Consumer<DiagnosticCenterViewModel>(
+      builder: (context, vm, _) {
         return Scaffold(
           appBar: AppBar(),
           body: Column(
             children: [
-              const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: TextField(
                   controller: vm.searchController,
                   onChanged: vm.search,
                   decoration: InputDecoration(
-                    hintText: "Search pharmaceutical",
+                    hintText: "Search",
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -53,14 +56,14 @@ class _PharmaceuticalView extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: vm.isLoading
+                child: vm.loading
                     ? const Center(child: CircularProgressIndicator())
-                    : vm.pharmaceuticals.isEmpty
-                    ? const Center(child: Text("No Pharmaceutical Found"))
+                    : vm.centers.isEmpty
+                    ? const Center(child: Text("No Diagnostic Center Found"))
                     : ListView.builder(
-                        itemCount: vm.pharmaceuticals.length,
+                        itemCount: vm.centers.length,
                         itemBuilder: (context, index) {
-                          final UserModel item = vm.pharmaceuticals[index];
+                          final UserModel item = vm.centers[index];
                           final image = _getImage(item.imageUrl);
                           return Card(
                             margin: const EdgeInsets.symmetric(
@@ -75,7 +78,7 @@ class _PharmaceuticalView extends StatelessWidget {
                                         item.name != null &&
                                                 item.name!.isNotEmpty
                                             ? item.name![0]
-                                            : "P",
+                                            : "D",
                                       )
                                     : null,
                               ),
@@ -91,12 +94,14 @@ class _PharmaceuticalView extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => PharmaceuticalDetailsScreen(
-                                      pharmaceutical: item,
-                                    ),
+                                    builder: (_) =>
+                                        DiagnosticCenterDetailsScreen(
+                                          diagnosticCenter: item,
+                                          service: vm.service,
+                                        ),
                                   ),
-                                ).then((value) {
-                                  vm.loadPharmaceuticals();
+                                ).then((_) {
+                                  vm.loadDiagnosticCenters();
                                 });
                               },
                             ),
@@ -113,10 +118,10 @@ class _PharmaceuticalView extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const PharmaceuticalRegisterScreen(),
+                  builder: (_) => DiagnosticCenterRegisterScreen(),
                 ),
-              ).then((value) {
-                vm.loadPharmaceuticals();
+              ).then((_) {
+                vm.loadDiagnosticCenters();
               });
             },
           ),

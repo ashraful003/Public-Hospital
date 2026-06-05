@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../color/app_color.dart';
-import '../../viewModel/dashboard/pharmaceutical_register_view_model.dart';
-import 'pharmaceutical_screen.dart';
+import '../../viewModel/dashboard/diagnostic_center_register_view_model.dart';
+import 'diagnostic_center_screen.dart';
 
-class PharmaceuticalRegisterScreen extends StatelessWidget {
-  const PharmaceuticalRegisterScreen({super.key});
+class DiagnosticCenterRegisterScreen extends StatelessWidget {
+  const DiagnosticCenterRegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => PharmaceuticalRegisterViewModel(),
-      child: const _PharmaceuticalRegisterView(),
+      create: (_) => DiagnosticCenterRegisterViewModel(),
+      child: const _View(),
     );
   }
 }
 
-class _PharmaceuticalRegisterView extends StatelessWidget {
-  const _PharmaceuticalRegisterView();
+class _View extends StatelessWidget {
+  const _View();
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PharmaceuticalRegisterViewModel>(
-      builder: (context, vm, child) {
+    return Consumer<DiagnosticCenterRegisterViewModel>(
+      builder: (context, vm, _) {
         return Scaffold(
           appBar: AppBar(),
           body: SingleChildScrollView(
@@ -61,6 +61,14 @@ class _PharmaceuticalRegisterView extends StatelessWidget {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: vm.isButtonEnable
+                          ? AppColors.blue_200
+                          : Colors.grey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: vm.isButtonEnable && !vm.isLoading
                         ? () async {
                             final success = await vm.register(context);
@@ -68,35 +76,21 @@ class _PharmaceuticalRegisterView extends StatelessWidget {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const PharmaceuticalScreen(),
+                                  builder: (_) =>
+                                      const DiagnosticCenterScreen(),
                                 ),
                               );
                             }
                           }
                         : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: vm.isButtonEnable
-                          ? AppColors.blue_200
-                          : Colors.grey,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                     child: vm.isLoading
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
                           )
                         : const Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.whiteColor,
-                            ),
+                            "Submit",
+                            style: TextStyle(color: Colors.white),
                           ),
                   ),
                 ),

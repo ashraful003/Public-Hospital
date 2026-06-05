@@ -10,11 +10,18 @@ import 'package:public_hospital/view/dashboard/admission_screen.dart';
 import 'package:public_hospital/view/dashboard/ambulance_screen.dart';
 import 'package:public_hospital/view/dashboard/appointment_screen.dart';
 import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
+import 'package:public_hospital/view/dashboard/diagnostic_center_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_screen.dart';
 import 'package:public_hospital/view/dashboard/pharmaceutical_screen.dart';
 import 'package:public_hospital/view/dashboard/prescription_screen.dart';
+import 'package:public_hospital/view/dashboard/reports_screen.dart';
 import 'package:public_hospital/view/dashboard/search_prescription_screen.dart';
+import 'package:public_hospital/view/dashboard/search_report_screen.dart';
 import 'package:public_hospital/view/dashboard/staff_screen.dart';
+import 'package:public_hospital/viewModel/dashboard/search_bill_status_view_model.dart';
+
+import '../../view/dashboard/bill_status_screen.dart';
+import '../../view/dashboard/search_bill_status_screen.dart';
 
 class HomeSection {
   final List<HomeItemModel> items;
@@ -73,9 +80,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -94,9 +100,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -112,8 +117,7 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
-      "Bill Status",
+      "Reports",
       "Discharge",
       "Meals",
       "Facility",
@@ -129,9 +133,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -148,9 +151,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -167,9 +169,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -186,9 +187,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Facility",
@@ -211,9 +211,8 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -230,9 +229,8 @@ class HomeViewModel extends ChangeNotifier {
       "Admission",
       "Emergency",
       "Prescription",
-      "Report",
+      "Reports",
       "Bill Status",
-      "Bill Settlement",
       "Discharge",
       "Meals",
       "Health\nDeclaration",
@@ -245,7 +243,7 @@ class HomeViewModel extends ChangeNotifier {
       "Staff",
     ],
     "pharmaceutical": ["Emergency", "Facility", "Medicine\nStore", "Parking"],
-    "diagnostic_center": ["Emergency", "Report", "Facility", "Parking"],
+    "diagnostic_center": ["Emergency", "Reports", "Facility", "Parking"],
   };
 
   List<HomeItemModel> get topItems {
@@ -279,18 +277,13 @@ class HomeViewModel extends ChangeNotifier {
         bgColor: Colors.blue,
       ),
       HomeItemModel(
-        title: "Report",
+        title: "Reports",
         icon: Icons.assignment,
         bgColor: Colors.blue,
       ),
       HomeItemModel(
         title: "Bill Status",
         icon: Icons.description,
-        bgColor: Colors.blue,
-      ),
-      HomeItemModel(
-        title: "Bill Settlement",
-        icon: Icons.request_page,
         bgColor: Colors.blue,
       ),
       HomeItemModel(
@@ -369,9 +362,11 @@ class HomeViewModel extends ChangeNotifier {
       case "Appointment":
         _navigate(context, const AppointmentScreen());
         break;
+
       case "Admission":
         _navigate(context, AdmissionScreen(role: role));
         break;
+
       case "Prescription":
         if (role.toLowerCase() == "doctor") {
           _navigate(context, SearchPrescriptionScreen(role: role));
@@ -385,21 +380,61 @@ class HomeViewModel extends ChangeNotifier {
           );
         }
         break;
+
+      case "Reports":
+        if (role.toLowerCase() == "doctor") {
+          _navigate(context, SearchReportScreen(role: role));
+        } else {
+          _navigate(
+            context,
+            ReportsScreen(
+              patientId: currentUser?.nationalId ?? "",
+              role: role,
+            ),
+          );
+        }
+        break;
+
+      case "Diagnostic\nCenter":
+        _navigate(context, const DiagnosticCenterScreen());
+        break;
+
       case "Pharmaceutical":
         _navigate(context, const PharmaceuticalScreen());
         break;
+
       case "Medicine\nStore":
         _navigate(context, const MedicineScreen());
         break;
+
       case "Staff":
         _navigate(context, const StaffScreen());
         break;
+
       case "Blood Bank":
         _navigate(context, const BloodDonorScreen());
         break;
+
       case "Ambulance":
         _navigate(context, const AmbulanceScreen());
         break;
+
+      case "Bill Status":
+        final userRole = role.toLowerCase();
+        final patientId = currentUser?.nationalId ?? "";
+        if (userRole == "admin" || userRole == "accountant") {
+          _navigate(context, SearchBillStatusScreen(role: role));
+        } else {
+          _navigate(
+            context,
+            BillStatusScreen(
+              role: role,
+              patientId: patientId,
+            ),
+          );
+        }
+        break;
+
       default:
         _showToast(item.title);
     }

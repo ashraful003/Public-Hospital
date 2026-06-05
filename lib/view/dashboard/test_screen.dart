@@ -17,7 +17,7 @@ class TestScreen extends StatelessWidget {
       child: Consumer<TestViewModel>(
         builder: (context, vm, child) {
           return Scaffold(
-            appBar: AppBar(title: const Text("Test List"), centerTitle: true),
+            appBar: AppBar(),
             floatingActionButton: vm.canAdd
                 ? FloatingActionButton(
                     onPressed: () => showAddTestDialog(context, vm),
@@ -42,16 +42,30 @@ class TestScreen extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.all(6),
-                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         color: Colors.blue.shade100,
                         child: const Row(
                           children: [
-                            Expanded(flex: 1, child: Text("No")),
-                            Expanded(flex: 4, child: Text("Test Name")),
+                            Expanded(
+                              flex: 1,
+                              child: Text("No", textAlign: TextAlign.left),
+                            ),
+                            Expanded(flex: 3, child: Text("Test Name")),
                             Expanded(flex: 2, child: Text("Price")),
+                            Expanded(flex: 2, child: Text("Unit")),
+                            Expanded(flex: 3, child: Text("Range")),
                             Expanded(flex: 2, child: Text("Currency")),
-                            Expanded(flex: 1, child: Text("Action")),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                "Action",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -67,7 +81,10 @@ class TestScreen extends StatelessWidget {
                                       horizontal: 6,
                                       vertical: 4,
                                     ),
-                                    padding: const EdgeInsets.all(12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(6),
@@ -82,22 +99,44 @@ class TestScreen extends StatelessWidget {
                                       children: [
                                         Expanded(
                                           flex: 1,
-                                          child: Text("${index + 1}"),
+                                          child: Text(
+                                            "${index + 1}",
+                                            textAlign: TextAlign.left,
+                                          ),
                                         ),
+
                                         Expanded(
-                                          flex: 4,
+                                          flex: 3,
                                           child: Text(test.testName),
                                         ),
+
                                         Expanded(
                                           flex: 2,
-                                          child: Text("${test.price}"),
+                                          child: Text(
+                                            test.price.toStringAsFixed(2),
+                                          ),
                                         ),
+
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(test.unit),
+                                        ),
+
+                                        Expanded(
+                                          flex: 3,
+                                          child: Text(
+                                            test.range,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+
                                         Expanded(
                                           flex: 2,
                                           child: Text(test.currency),
                                         ),
+
                                         Expanded(
-                                          flex: 1,
+                                          flex: 2,
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
@@ -117,6 +156,7 @@ class TestScreen extends StatelessWidget {
                                                     );
                                                   },
                                                 ),
+
                                               if (vm.canDelete)
                                                 IconButton(
                                                   icon: const Icon(
@@ -153,6 +193,8 @@ class TestScreen extends StatelessWidget {
     final testNameController = TextEditingController(text: test.testName);
     final priceController = TextEditingController(text: test.price.toString());
     final currencyController = TextEditingController(text: test.currency);
+    final unitController = TextEditingController(text: test.unit);
+    final rangeController = TextEditingController(text: test.range);
     showDialog(
       context: context,
       builder: (_) {
@@ -164,6 +206,8 @@ class TestScreen extends StatelessWidget {
               _field(testNameController, "Test Name"),
               _field(priceController, "Price"),
               _field(currencyController, "Currency"),
+              _field(unitController, "Unit"),
+              _field(rangeController, "Range"),
             ],
           ),
           actions: [
@@ -174,11 +218,16 @@ class TestScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 final body = {
-                  "testName": testNameController.text,
-                  "price": double.tryParse(priceController.text) ?? 0,
-                  "currency": currencyController.text,
+                  "name": test.name,
+                  "testName": testNameController.text.trim(),
+                  "price": double.tryParse(priceController.text.trim()) ?? 0,
+                  "currency": currencyController.text.trim(),
+                  "unit": unitController.text.trim(),
+                  "range": rangeController.text.trim(),
                 };
+
                 Navigator.pop(context);
+
                 await vm.updateTest(test.id, body);
               },
               child: const Text("Update"),
@@ -194,6 +243,8 @@ class TestScreen extends StatelessWidget {
     final testName = TextEditingController();
     final price = TextEditingController();
     final currency = TextEditingController();
+    final unit = TextEditingController();
+    final range = TextEditingController();
     showDialog(
       context: context,
       builder: (_) {
@@ -210,6 +261,8 @@ class TestScreen extends StatelessWidget {
               _field(testName, "Test Name"),
               _field(price, "Price"),
               _field(currency, "Currency"),
+              _field(unit, "Unit"),
+              _field(range, "Range"),
             ],
           ),
           actions: [
@@ -224,6 +277,8 @@ class TestScreen extends StatelessWidget {
                   "testName": testName.text,
                   "price": double.tryParse(price.text) ?? 0,
                   "currency": currency.text,
+                  "unit": unit.text,
+                  "range": range.text,
                 };
                 final ok = await vm.addTest(body);
                 if (ok) Navigator.pop(context);

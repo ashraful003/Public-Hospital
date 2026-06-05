@@ -39,19 +39,7 @@ class PharmaceuticalDetailsScreen extends StatelessWidget {
           }
 
           return Scaffold(
-            appBar: AppBar(
-              backgroundColor: AppColors.blue_200,
-              title: const Text(
-                'Pharmaceutical Profile',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              centerTitle: true,
-              automaticallyImplyLeading: !kIsWeb,
-              iconTheme: const IconThemeData(color: Colors.white),
-            ),
+            appBar: AppBar(),
             body: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(

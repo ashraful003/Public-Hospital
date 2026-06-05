@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:public_hospital/view/dashboard/test_queue_screen.dart';
 import '../../data/shared_pref_service.dart';
 import '../../model/drawer_item_model.dart';
 import '../../model/user_model.dart';
@@ -69,11 +70,11 @@ class DrawerViewModel extends ChangeNotifier {
     } else if (role == "DIAGNOSTIC_CENTER") {
       drawerItems = [
         _item('Test', '/test', 'test', 0),
+        _item('Make Report', '/report', 'report', 0),
         _item('Logout', '/logout', 'logout', 1),
       ];
     } else if (role == "ACCOUNTANT") {
       drawerItems = [
-        _item('Make Bill', '/bill', 'bill', 0),
         _item('Bill Status', '/status', 'status', 1),
         _item('Logout', '/logout', 'logout', 2),
       ];
@@ -111,10 +112,10 @@ class DrawerViewModel extends ChangeNotifier {
       iconName: 'test',
     ),
     DrawerItemModel(
-      title: 'Make Bill',
-      routeName: '/bill',
+      title: 'Make Report',
+      routeName: '/report',
       index: 2,
-      iconName: 'bill',
+      iconName: 'report',
     ),
     DrawerItemModel(
       title: 'Bill Status',
@@ -142,7 +143,7 @@ class DrawerViewModel extends ChangeNotifier {
         return Icons.insights;
       case 'test':
         return Icons.description;
-      case 'bill':
+      case 'report':
         return Icons.receipt_long;
       case 'status':
         return Icons.assignment;
@@ -206,8 +207,11 @@ class DrawerViewModel extends ChangeNotifier {
           MaterialPageRoute(builder: (_) => TestScreen(role: role)),
         );
         break;
-      case 'bill':
-        Navigator.pushNamed(context, '/bill');
+      case 'report':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => TestQueueScreen(role: role, patientId: nationalId)),
+        );
         break;
       case 'status':
         Navigator.pushNamed(context, '/status');
