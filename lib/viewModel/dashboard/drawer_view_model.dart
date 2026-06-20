@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:public_hospital/view/dashboard/emergency_contact_screen.dart';
 import 'package:public_hospital/view/dashboard/test_queue_screen.dart';
 import '../../data/shared_pref_service.dart';
 import '../../model/drawer_item_model.dart';
@@ -124,15 +125,21 @@ class DrawerViewModel extends ChangeNotifier {
       iconName: 'status',
     ),
     DrawerItemModel(
+      title: 'Emergency Contact',
+      routeName: '/contact',
+      index: 4,
+      iconName: 'contact',
+    ),
+    DrawerItemModel(
       title: 'Inpatient Discharge',
       routeName: '/discharge',
-      index: 4,
+      index: 5,
       iconName: 'discharge',
     ),
     DrawerItemModel(
       title: 'Logout',
       routeName: '/logout',
-      index: 5,
+      index: 6,
       iconName: 'logout',
     ),
   ];
@@ -144,9 +151,11 @@ class DrawerViewModel extends ChangeNotifier {
       case 'test':
         return Icons.description;
       case 'report':
-        return Icons.receipt_long;
+        return Icons.description;
       case 'status':
         return Icons.assignment;
+      case 'contact':
+        return Icons.phone;
       case 'discharge':
         return Icons.accessible;
       case 'logout':
@@ -210,11 +219,19 @@ class DrawerViewModel extends ChangeNotifier {
       case 'report':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => TestQueueScreen(role: role, patientId: nationalId)),
+          MaterialPageRoute(
+            builder: (_) => TestQueueScreen(role: role, patientId: nationalId),
+          ),
         );
         break;
       case 'status':
         Navigator.pushNamed(context, '/status');
+        break;
+      case 'contact':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => EmergencyContactScreen()),
+        );
         break;
       case 'discharge':
         Navigator.pushNamed(context, '/discharge');

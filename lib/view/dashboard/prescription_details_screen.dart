@@ -440,7 +440,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                                             child: Row(
                                                               children: [
                                                                 Expanded(
-                                                                  flex: 2,
+                                                                  flex: 3,
                                                                   child: Text(
                                                                     "${m["dose"]}",
                                                                   ),

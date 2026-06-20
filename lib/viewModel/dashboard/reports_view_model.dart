@@ -77,9 +77,7 @@ class ReportsViewModel extends ChangeNotifier {
     try {
       _loading = true;
       notifyListeners();
-      if (role == "admin") {
-        _allReports = await service.getAllReports();
-      } else if (role == "diagnostic_center") {
+      if (role == "diagnostic_center") {
         final centerName = _currentUser?.name ?? "";
         _allReports = await service.getReportsByCenterName(centerName);
       } else {

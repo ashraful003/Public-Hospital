@@ -12,15 +12,18 @@ import 'package:public_hospital/view/dashboard/appointment_screen.dart';
 import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
 import 'package:public_hospital/view/dashboard/diagnostic_center_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_screen.dart';
+import 'package:public_hospital/view/dashboard/parking_screen.dart';
 import 'package:public_hospital/view/dashboard/pharmaceutical_screen.dart';
 import 'package:public_hospital/view/dashboard/prescription_screen.dart';
 import 'package:public_hospital/view/dashboard/reports_screen.dart';
 import 'package:public_hospital/view/dashboard/search_prescription_screen.dart';
 import 'package:public_hospital/view/dashboard/search_report_screen.dart';
+import 'package:public_hospital/view/dashboard/seat_screen.dart';
 import 'package:public_hospital/view/dashboard/staff_screen.dart';
-import 'package:public_hospital/viewModel/dashboard/search_bill_status_view_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../view/dashboard/bill_status_screen.dart';
+import '../../view/dashboard/doctor_contact_screen.dart';
 import '../../view/dashboard/search_bill_status_screen.dart';
 
 class HomeSection {
@@ -35,10 +38,13 @@ class HomeViewModel extends ChangeNotifier {
   HomeViewModel(this.role) {
     _init();
     loadCurrentUser();
+    loadEmergencyNumber();
   }
 
   UserModel? currentUser;
   bool isLoading = false;
+  String emergencyNumber = "";
+  bool emergencyLoading = false;
 
   Future<void> loadCurrentUser() async {
     try {
@@ -74,17 +80,61 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> loadEmergencyNumber() async {
+    try {
+      emergencyLoading = true;
+      notifyListeners();
+
+      final response = await ApiClient.get("${ApiConfig.baseUrl}/contact/all");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        if (data.isNotEmpty) {
+          emergencyNumber = data.first["emergencyNumber"] ?? "";
+        }
+      }
+    } catch (e) {
+      debugPrint("Emergency Error: $e");
+    } finally {
+      emergencyLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> makeEmergencyCall(String phoneNumber) async {
+    try {
+      final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        Fluttertoast.showToast(
+          msg: "Could not open dial pad",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: e.toString(),
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
   final Map<String, List<String>> roleAccess = {
     "admin": [
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
@@ -99,16 +149,15 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
     ],
@@ -116,6 +165,7 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Discharge",
@@ -123,7 +173,6 @@ class HomeViewModel extends ChangeNotifier {
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -132,16 +181,15 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -150,16 +198,15 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -168,16 +215,15 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -186,13 +232,13 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
       "Facility",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -201,6 +247,7 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Facility",
       "Medicine\nStore",
@@ -211,15 +258,14 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -228,16 +274,15 @@ class HomeViewModel extends ChangeNotifier {
       "Appointment",
       "Admission",
       "Emergency",
+      "24/7 Service",
       "Prescription",
       "Reports",
       "Bill Status",
       "Discharge",
       "Meals",
-      "Health\nDeclaration",
       "Facility",
       "Blood Bank",
       "Ambulance",
-      "Booking",
       "Medicine\nStore",
       "Parking",
       "Staff",
@@ -292,18 +337,13 @@ class HomeViewModel extends ChangeNotifier {
         bgColor: Colors.blue,
       ),
       HomeItemModel(
-        title: "Emergency",
-        icon: Icons.access_time,
+        title: "24/7 Service",
+        icon: Icons.support_agent,
         bgColor: Colors.red,
       ),
       HomeItemModel(
         title: "Meals",
         icon: Icons.restaurant,
-        bgColor: Colors.blue,
-      ),
-      HomeItemModel(
-        title: "Health\nDeclaration",
-        icon: Icons.checklist,
         bgColor: Colors.blue,
       ),
       HomeItemModel(
@@ -357,7 +397,7 @@ class HomeViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  void onItemTap(BuildContext context, HomeItemModel item) {
+  Future<void> onItemTap(BuildContext context, HomeItemModel item) async {
     switch (item.title) {
       case "Appointment":
         _navigate(context, const AppointmentScreen());
@@ -365,6 +405,18 @@ class HomeViewModel extends ChangeNotifier {
 
       case "Admission":
         _navigate(context, AdmissionScreen(role: role));
+        break;
+
+      case "Emergency":
+        if (emergencyNumber.isEmpty) {
+          Fluttertoast.showToast(
+            msg: "Emergency number not available",
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
+          return;
+        }
+        await makeEmergencyCall(emergencyNumber);
         break;
 
       case "Prescription":
@@ -387,12 +439,13 @@ class HomeViewModel extends ChangeNotifier {
         } else {
           _navigate(
             context,
-            ReportsScreen(
-              patientId: currentUser?.nationalId ?? "",
-              role: role,
-            ),
+            ReportsScreen(patientId: currentUser?.nationalId ?? "", role: role),
           );
         }
+        break;
+
+      case "24/7 Service":
+        _navigate(context, const DoctorContactScreen());
         break;
 
       case "Diagnostic\nCenter":
@@ -419,6 +472,20 @@ class HomeViewModel extends ChangeNotifier {
         _navigate(context, const AmbulanceScreen());
         break;
 
+      case "Booking":
+        _navigate(
+          context,
+          SeatScreen(patientId: currentUser?.nationalId ?? "", role: role),
+        );
+        break;
+
+      case "Parking":
+        _navigate(
+          context,
+          ParkingScreen(patientId: currentUser?.nationalId ?? "", role: role),
+        );
+        break;
+
       case "Bill Status":
         final userRole = role.toLowerCase();
         final patientId = currentUser?.nationalId ?? "";
@@ -427,10 +494,7 @@ class HomeViewModel extends ChangeNotifier {
         } else {
           _navigate(
             context,
-            BillStatusScreen(
-              role: role,
-              patientId: patientId,
-            ),
+            BillStatusScreen(role: role, patientId: patientId),
           );
         }
         break;
