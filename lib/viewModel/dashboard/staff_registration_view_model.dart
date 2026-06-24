@@ -14,6 +14,7 @@ class StaffRegistrationViewModel extends ChangeNotifier {
   final degreeController = TextEditingController();
   final licenseController = TextEditingController();
   final specialistController = TextEditingController();
+  final departmentController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   UserRole? selectedRole;
@@ -44,6 +45,7 @@ class StaffRegistrationViewModel extends ChangeNotifier {
       degreeController,
       licenseController,
       specialistController,
+      departmentController,
       passwordController,
       confirmPasswordController,
     ].forEach((c) => c.addListener(_validateForm));
@@ -81,25 +83,29 @@ class StaffRegistrationViewModel extends ChangeNotifier {
   void _validateForm() {
     bool baseValid =
         nationalIdController.text.isNotEmpty &&
-        nameController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        phoneController.text.isNotEmpty &&
-        addressController.text.isNotEmpty &&
-        dobController.text.isNotEmpty &&
-        instituteController.text.isNotEmpty &&
-        degreeController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty &&
-        confirmPasswordController.text.isNotEmpty &&
-        passwordController.text == confirmPasswordController.text &&
-        selectedRole != null;
+            nameController.text.isNotEmpty &&
+            emailController.text.isNotEmpty &&
+            phoneController.text.isNotEmpty &&
+            addressController.text.isNotEmpty &&
+            dobController.text.isNotEmpty &&
+            instituteController.text.isNotEmpty &&
+            degreeController.text.isNotEmpty &&
+            passwordController.text.isNotEmpty &&
+            confirmPasswordController.text.isNotEmpty &&
+            passwordController.text == confirmPasswordController.text &&
+            selectedRole != null;
+
     bool roleValid = true;
+
     if (isDoctor) {
       roleValid =
           licenseController.text.isNotEmpty &&
-          specialistController.text.isNotEmpty;
+              specialistController.text.isNotEmpty &&
+              departmentController.text.isNotEmpty;
     } else if (isNurse || isDriver) {
       roleValid = licenseController.text.isNotEmpty;
     }
+
     isButtonEnabled = baseValid && roleValid;
     notifyListeners();
   }
@@ -144,12 +150,18 @@ class StaffRegistrationViewModel extends ChangeNotifier {
       dob: _parseDob(),
       institute: instituteController.text.trim(),
       degree: degreeController.text.trim(),
+
       license: licenseController.text.isEmpty
           ? null
           : licenseController.text.trim(),
+
       specialist: specialistController.text.isEmpty
           ? null
           : specialistController.text.trim(),
+      department: departmentController.text.isEmpty
+          ? null
+          : departmentController.text.trim(),
+
       password: passwordController.text.trim(),
       role: selectedRole,
       isActive: true,
@@ -180,6 +192,7 @@ class StaffRegistrationViewModel extends ChangeNotifier {
     degreeController.clear();
     licenseController.clear();
     specialistController.clear();
+    departmentController.clear();
     passwordController.clear();
     confirmPasswordController.clear();
     selectedRole = null;
@@ -199,6 +212,7 @@ class StaffRegistrationViewModel extends ChangeNotifier {
     degreeController.dispose();
     licenseController.dispose();
     specialistController.dispose();
+    departmentController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
