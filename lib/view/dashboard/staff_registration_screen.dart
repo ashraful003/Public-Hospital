@@ -135,12 +135,19 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                         "License Number",
                         Icons.verified,
                       ),
-                    if (vm.isDoctor)
+                    if (vm.isDoctor) ...[
                       _buildField(
                         vm.specialistController,
                         "Specialist Area",
                         Icons.medical_services,
                       ),
+
+                      _buildField(
+                        vm.departmentController,
+                        "Department",
+                        Icons.apartment,
+                      ),
+                    ],
                     _buildPasswordField(
                       vm.passwordController,
                       "Password",

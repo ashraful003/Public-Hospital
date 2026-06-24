@@ -14,21 +14,41 @@ class DashboardScreen extends StatelessWidget {
       create: (_) => DashboardViewModel(role),
       child: Consumer<DashboardViewModel>(
         builder: (context, vm, child) {
+          if (vm.isLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (vm.errorMessage != null) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(vm.errorMessage!),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () {
+                        vm.loadCurrentUser();
+                      },
+                      child: const Text("Retry"),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           return Scaffold(
-            body: vm.screens[vm.currentIndex],
+            body: IndexedStack(index: vm.currentIndex, children: vm.screens),
             bottomNavigationBar: BottomNavigationBar(
               currentIndex: vm.currentIndex,
               onTap: vm.changeTab,
               type: BottomNavigationBarType.fixed,
-              items: vm.navItems.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                final isSelected = vm.currentIndex == index;
+              selectedItemColor: AppColors.blue_200,
+              unselectedItemColor: AppColors.black100,
+              items: vm.navItems.map((item) {
                 return BottomNavigationBarItem(
-                  icon: Icon(
-                    item.icon,
-                    color: isSelected ? AppColors.blue_200 : item.iconColor,
-                  ),
+                  icon: Icon(item.icon),
                   label: item.label,
                 );
               }).toList(),

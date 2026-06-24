@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:public_hospital/model/home_item_model.dart';
 import 'package:public_hospital/view/dashboard/advice_screen.dart';
+import 'package:public_hospital/view/dashboard/doctor_appointment_screen.dart';
 import 'package:public_hospital/view/dashboard/dose_time_screen.dart';
 import 'package:public_hospital/view/dashboard/doses_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_type_screen.dart';
@@ -24,7 +25,7 @@ class ActivityViewModel extends ChangeNotifier {
   void _setItems() {
     _allItems = [
       HomeItemModel(
-        title: "Make\nAppointment",
+        title: "Appointment",
         icon: Icons.calendar_month,
         bgColor: Colors.blue,
       ),
@@ -118,7 +119,14 @@ class ActivityViewModel extends ChangeNotifier {
           ),
         );
         break;
-      case "Make Appointment":
+      case "Appointment":
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                DoctorAppointmentScreen(role: role, nationalId: nationalId),
+          ),
+        );
         break;
       default:
         break;

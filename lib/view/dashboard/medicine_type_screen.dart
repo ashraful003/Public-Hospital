@@ -77,7 +77,6 @@ class MedicineTypeScreen extends StatelessWidget {
                               color: Colors.blue,
                             ),
                             title: Text(item.medicineType),
-                            subtitle: Text(item.nationalId),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

@@ -8,7 +8,6 @@ import 'package:public_hospital/service/api_client.dart';
 import 'package:public_hospital/service/api_config.dart';
 import 'package:public_hospital/view/dashboard/admission_screen.dart';
 import 'package:public_hospital/view/dashboard/ambulance_screen.dart';
-import 'package:public_hospital/view/dashboard/appointment_screen.dart';
 import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
 import 'package:public_hospital/view/dashboard/diagnostic_center_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_screen.dart';
@@ -21,8 +20,8 @@ import 'package:public_hospital/view/dashboard/search_report_screen.dart';
 import 'package:public_hospital/view/dashboard/seat_screen.dart';
 import 'package:public_hospital/view/dashboard/staff_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../view/dashboard/bill_status_screen.dart';
+import '../../view/dashboard/department_screen.dart';
 import '../../view/dashboard/doctor_contact_screen.dart';
 import '../../view/dashboard/search_bill_status_screen.dart';
 
@@ -58,7 +57,6 @@ class HomeViewModel extends ChangeNotifier {
           SharedPrefService.getString("user_role") ??
           role;
       if (email == null || email.isEmpty) {
-        debugPrint("Email not found");
         return;
       }
       final url = "${ApiConfig.baseUrl}/profile?email=$email&role=$savedRole";
@@ -73,7 +71,6 @@ class HomeViewModel extends ChangeNotifier {
           textColor: Colors.white,
         );
       }
-    } catch (e) {
     } finally {
       isLoading = false;
       notifyListeners();
@@ -84,18 +81,13 @@ class HomeViewModel extends ChangeNotifier {
     try {
       emergencyLoading = true;
       notifyListeners();
-
       final response = await ApiClient.get("${ApiConfig.baseUrl}/contact/all");
-
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-
         if (data.isNotEmpty) {
           emergencyNumber = data.first["emergencyNumber"] ?? "";
         }
       }
-    } catch (e) {
-      debugPrint("Emergency Error: $e");
     } finally {
       emergencyLoading = false;
       notifyListeners();
@@ -105,7 +97,6 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> makeEmergencyCall(String phoneNumber) async {
     try {
       final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
-
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
@@ -400,13 +391,17 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> onItemTap(BuildContext context, HomeItemModel item) async {
     switch (item.title) {
       case "Appointment":
-        _navigate(context, const AppointmentScreen());
+        _navigate(
+          context,
+          DepartmentScreen(
+            patientId: currentUser?.nationalId ?? "",
+            role: role,
+          ),
+        );
         break;
-
       case "Admission":
         _navigate(context, AdmissionScreen(role: role));
         break;
-
       case "Emergency":
         if (emergencyNumber.isEmpty) {
           Fluttertoast.showToast(
@@ -418,7 +413,6 @@ class HomeViewModel extends ChangeNotifier {
         }
         await makeEmergencyCall(emergencyNumber);
         break;
-
       case "Prescription":
         if (role.toLowerCase() == "doctor") {
           _navigate(context, SearchPrescriptionScreen(role: role));
@@ -432,7 +426,6 @@ class HomeViewModel extends ChangeNotifier {
           );
         }
         break;
-
       case "Reports":
         if (role.toLowerCase() == "doctor") {
           _navigate(context, SearchReportScreen(role: role));
@@ -443,49 +436,39 @@ class HomeViewModel extends ChangeNotifier {
           );
         }
         break;
-
       case "24/7 Service":
         _navigate(context, const DoctorContactScreen());
         break;
-
       case "Diagnostic\nCenter":
         _navigate(context, const DiagnosticCenterScreen());
         break;
-
       case "Pharmaceutical":
         _navigate(context, const PharmaceuticalScreen());
         break;
-
       case "Medicine\nStore":
         _navigate(context, const MedicineScreen());
         break;
-
       case "Staff":
         _navigate(context, const StaffScreen());
         break;
-
       case "Blood Bank":
         _navigate(context, const BloodDonorScreen());
         break;
-
       case "Ambulance":
         _navigate(context, const AmbulanceScreen());
         break;
-
       case "Booking":
         _navigate(
           context,
           SeatScreen(patientId: currentUser?.nationalId ?? "", role: role),
         );
         break;
-
       case "Parking":
         _navigate(
           context,
           ParkingScreen(patientId: currentUser?.nationalId ?? "", role: role),
         );
         break;
-
       case "Bill Status":
         final userRole = role.toLowerCase();
         final patientId = currentUser?.nationalId ?? "";
@@ -498,7 +481,6 @@ class HomeViewModel extends ChangeNotifier {
           );
         }
         break;
-
       default:
         _showToast(item.title);
     }

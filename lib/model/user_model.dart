@@ -29,6 +29,7 @@ class UserModel {
   final String? degree;
   final String? license;
   final String? specialist;
+  final String? department;
   final bool? isActive;
   final UserRole? role;
 
@@ -48,6 +49,7 @@ class UserModel {
     this.degree,
     this.license,
     this.specialist,
+    this.department,
     this.isActive,
     this.role,
   });
@@ -68,10 +70,9 @@ class UserModel {
       degree: json["degree"],
       license: json["license"],
       specialist: json["specialist"],
+      department: json["department"],
       isActive: json["isActive"] ?? false,
-      dob: json["dob"] != null
-          ? DateTime.tryParse(json["dob"])
-          : null,
+      dob: json["dob"] != null ? DateTime.tryParse(json["dob"]) : null,
       role: _parseRole(json["role"]),
     );
   }
@@ -123,6 +124,7 @@ class UserModel {
     String? degree,
     String? license,
     String? specialist,
+    String? department,
     bool? isActive,
     UserRole? role,
   }) {
@@ -142,6 +144,7 @@ class UserModel {
       degree: degree ?? this.degree,
       license: license ?? this.license,
       specialist: specialist ?? this.specialist,
+      department: department ?? this.department,
       isActive: isActive ?? this.isActive,
       role: role ?? this.role,
     );
@@ -197,6 +200,7 @@ class UserModel {
       "degree": degree,
       "license": license,
       "specialist": specialist,
+      "department": department,
       "isActive": isActive,
       "role": roleValue,
     };
@@ -208,8 +212,7 @@ class UserModel {
     int age = today.year - dob!.year;
 
     if (today.month < dob!.month ||
-        (today.month == dob!.month &&
-            today.day < dob!.day)) {
+        (today.month == dob!.month && today.day < dob!.day)) {
       age--;
     }
     return age;
