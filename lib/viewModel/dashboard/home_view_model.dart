@@ -10,6 +10,7 @@ import 'package:public_hospital/view/dashboard/admission_screen.dart';
 import 'package:public_hospital/view/dashboard/ambulance_screen.dart';
 import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
 import 'package:public_hospital/view/dashboard/diagnostic_center_screen.dart';
+import 'package:public_hospital/view/dashboard/discharge_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_screen.dart';
 import 'package:public_hospital/view/dashboard/parking_screen.dart';
 import 'package:public_hospital/view/dashboard/pharmaceutical_screen.dart';
@@ -400,7 +401,7 @@ class HomeViewModel extends ChangeNotifier {
         );
         break;
       case "Admission":
-        _navigate(context, AdmissionScreen(role: role));
+        _navigate(context, AdmissionScreen(role: role, patientId: currentUser?.nationalId ?? ""));
         break;
       case "Emergency":
         if (emergencyNumber.isEmpty) {
@@ -436,6 +437,12 @@ class HomeViewModel extends ChangeNotifier {
           );
         }
         break;
+      case "Discharge":
+        _navigate(
+          context,
+          DischargeScreen(patientId: currentUser?.nationalId ?? "", role: role),
+        );
+        break;
       case "24/7 Service":
         _navigate(context, const DoctorContactScreen());
         break;
@@ -449,7 +456,7 @@ class HomeViewModel extends ChangeNotifier {
         _navigate(context, const MedicineScreen());
         break;
       case "Staff":
-        _navigate(context, const StaffScreen());
+        _navigate(context, const StaffService());
         break;
       case "Blood Bank":
         _navigate(context, const BloodDonorScreen());
