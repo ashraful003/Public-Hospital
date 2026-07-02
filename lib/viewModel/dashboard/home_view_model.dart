@@ -456,7 +456,7 @@ class HomeViewModel extends ChangeNotifier {
         _navigate(context, const MedicineScreen());
         break;
       case "Staff":
-        _navigate(context, const StaffService());
+        _navigate(context, const StaffScreen());
         break;
       case "Blood Bank":
         _navigate(context, const BloodDonorScreen());

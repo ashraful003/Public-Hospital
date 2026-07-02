@@ -6,8 +6,8 @@ import '../../widgets/home_circle_item.dart';
 import '../../viewModel/dashboard/staff_view_model.dart';
 import 'staff_registration_screen.dart';
 
-class StaffService extends StatelessWidget {
-  const StaffService({super.key});
+class StaffScreen extends StatelessWidget {
+  const StaffScreen({super.key});
 
   double _horizontalPadding(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
