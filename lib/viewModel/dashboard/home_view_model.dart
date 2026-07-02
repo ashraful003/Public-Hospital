@@ -10,6 +10,7 @@ import 'package:public_hospital/view/dashboard/admission_screen.dart';
 import 'package:public_hospital/view/dashboard/ambulance_screen.dart';
 import 'package:public_hospital/view/dashboard/blood_donor_screen.dart';
 import 'package:public_hospital/view/dashboard/diagnostic_center_screen.dart';
+import 'package:public_hospital/view/dashboard/discharge_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_screen.dart';
 import 'package:public_hospital/view/dashboard/parking_screen.dart';
 import 'package:public_hospital/view/dashboard/pharmaceutical_screen.dart';
@@ -400,7 +401,7 @@ class HomeViewModel extends ChangeNotifier {
         );
         break;
       case "Admission":
-        _navigate(context, AdmissionScreen(role: role));
+        _navigate(context, AdmissionScreen(role: role, patientId: currentUser?.nationalId ?? ""));
         break;
       case "Emergency":
         if (emergencyNumber.isEmpty) {
@@ -435,6 +436,12 @@ class HomeViewModel extends ChangeNotifier {
             ReportsScreen(patientId: currentUser?.nationalId ?? "", role: role),
           );
         }
+        break;
+      case "Discharge":
+        _navigate(
+          context,
+          DischargeScreen(patientId: currentUser?.nationalId ?? "", role: role),
+        );
         break;
       case "24/7 Service":
         _navigate(context, const DoctorContactScreen());

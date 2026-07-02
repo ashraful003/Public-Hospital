@@ -4,34 +4,33 @@ import 'package:intl/intl.dart';
 import '../../model/hospital_admission.dart';
 import '../../viewModel/dashboard/admission_view_model.dart';
 import 'admission_details_screen.dart';
-import 'admission_patient_screen.dart';
 
-class AdmissionScreen extends StatelessWidget {
+class DischargeScreen extends StatelessWidget {
   final String role;
   final String? patientId;
 
-  const AdmissionScreen({super.key, required this.role, this.patientId});
+  const DischargeScreen({super.key, required this.role, this.patientId});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AdmissionViewModel(),
-      child: _AdmissionView(role: role, patientId: patientId),
+      create: (_) => AdmissionViewModel(targetStatus: 'discharged'),
+      child: _DischargeView(role: role, patientId: patientId),
     );
   }
 }
 
-class _AdmissionView extends StatefulWidget {
+class _DischargeView extends StatefulWidget {
   final String role;
   final String? patientId;
 
-  const _AdmissionView({required this.role, this.patientId});
+  const _DischargeView({required this.role, this.patientId});
 
   @override
-  State<_AdmissionView> createState() => _AdmissionViewState();
+  State<_DischargeView> createState() => _DischargeViewState();
 }
 
-class _AdmissionViewState extends State<_AdmissionView> {
+class _DischargeViewState extends State<_DischargeView> {
   final TextEditingController _searchController = TextEditingController();
 
   bool get _isPrivileged {
@@ -64,7 +63,7 @@ class _AdmissionViewState extends State<_AdmissionView> {
       body: Column(
         children: [
           if (_isPrivileged) _SearchBar(controller: _searchController),
-          _TableHeader(role: widget.role),
+          const _TableHeader(),
           Expanded(
             child: _Body(role: widget.role, patientId: widget.patientId),
           ),
@@ -79,16 +78,10 @@ class _AdmissionViewState extends State<_AdmissionView> {
       backgroundColor: const Color(0xFF1A6B8A),
       foregroundColor: Colors.white,
       title: const Text(
-        'Admissions',
+        'Discharged',
         style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.4),
       ),
       actions: [
-        if (_isPrivileged)
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded),
-            tooltip: 'Admit patient',
-            onPressed: () => _openAdmitPatient(context),
-          ),
         Consumer<AdmissionViewModel>(
           builder: (_, vm, __) => IconButton(
             icon: const Icon(Icons.refresh_rounded),
@@ -106,20 +99,6 @@ class _AdmissionViewState extends State<_AdmissionView> {
         ),
       ],
     );
-  }
-
-  Future<void> _openAdmitPatient(BuildContext context) async {
-    final admitted = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => AdmissionPatientScreen(role: widget.role),
-      ),
-    );
-    if (admitted == true && context.mounted) {
-      context.read<AdmissionViewModel>().refresh(
-        isPrivileged: widget.role,
-        currentPatientId: widget.patientId,
-      );
-    }
   }
 }
 
@@ -179,56 +158,42 @@ class _SearchBar extends StatelessWidget {
 }
 
 class _TableHeader extends StatelessWidget {
-  final String role;
-
-  const _TableHeader({required this.role});
+  const _TableHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AdmissionViewModel>(
-      builder: (_, vm, __) {
-        return Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            color: Color(0xFF1A6B8A),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x1A000000),
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Color(0xFF1A6B8A),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1A000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                color: const Color(0xFF155A74),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 9,
-                ),
-                child: Row(
-                  children: const [
-                    Expanded(
-                      flex: 1,
-                      child: _HeaderCell('No.', align: TextAlign.center),
-                    ),
-                    Expanded(flex: 3, child: _HeaderCell('Patient Name')),
-                    Expanded(flex: 2, child: _HeaderCell('Patient ID')),
-                    Expanded(flex: 2, child: _HeaderCell('Admission')),
-                    Expanded(flex: 2, child: _HeaderCell('Exp. Discharge')),
-                    Expanded(
-                      flex: 2,
-                      child: _HeaderCell('Status', align: TextAlign.center),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
+      child: Container(
+        color: const Color(0xFF155A74),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        child: Row(
+          children: const [
+            Expanded(
+              flex: 1,
+              child: _HeaderCell('No.', align: TextAlign.center),
+            ),
+            Expanded(flex: 3, child: _HeaderCell('Patient Name')),
+            Expanded(flex: 2, child: _HeaderCell('Patient ID')),
+            Expanded(flex: 2, child: _HeaderCell('Admission')),
+            Expanded(flex: 2, child: _HeaderCell('Discharge')),
+            Expanded(
+              flex: 2,
+              child: _HeaderCell('Status', align: TextAlign.center),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -286,7 +251,7 @@ class _Body extends StatelessWidget {
               indent: 0,
               endIndent: 0,
             ),
-            itemBuilder: (_, i) => _AdmissionRow(
+            itemBuilder: (_, i) => _DischargeRow(
               index: i + 1,
               admission: vm.admissions[i],
               role: role,
@@ -299,13 +264,13 @@ class _Body extends StatelessWidget {
   }
 }
 
-class _AdmissionRow extends StatelessWidget {
+class _DischargeRow extends StatelessWidget {
   final int index;
   final HospitalAdmission admission;
   final String role;
   final String? patientId;
 
-  const _AdmissionRow({
+  const _DischargeRow({
     required this.index,
     required this.admission,
     required this.role,
@@ -377,7 +342,9 @@ class _AdmissionRow extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                _fmtShort(admission.expectedDischargeDate),
+                _fmtShort(
+                  admission.dischargeDate ?? admission.expectedDischargeDate,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12, color: Color(0xFF4A5568)),
@@ -494,7 +461,7 @@ class _LoadingView extends StatelessWidget {
           CircularProgressIndicator(color: Color(0xFF1A6B8A)),
           SizedBox(height: 16),
           Text(
-            'Loading admissions…',
+            'Loading discharged patients…',
             style: TextStyle(color: Color(0xFF6B7A8D)),
           ),
         ],
@@ -582,7 +549,9 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              isSearch ? 'No results for "$query"' : 'No admissions found',
+              isSearch
+                  ? 'No results for "$query"'
+                  : 'No discharged patients found',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
