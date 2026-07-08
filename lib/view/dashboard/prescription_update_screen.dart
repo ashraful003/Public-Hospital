@@ -28,7 +28,12 @@ class _PrescriptionUpdateScreenState extends State<PrescriptionUpdateScreen> {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          if (vm.error != null) {
+          // FIX: previously this was `if (vm.error != null)`, which also
+          // caught save/update failures and replaced the whole form with
+          // a blank "Update failed" page. It now only applies when the
+          // prescription itself never loaded, which is the only case this
+          // full-page error was meant to handle.
+          if (vm.error != null && vm.prescription == null) {
             return Scaffold(
               body: Center(
                 child: Column(
@@ -588,25 +593,25 @@ class _PrescriptionUpdateScreenState extends State<PrescriptionUpdateScreen> {
         onPressed: vm.isSaving
             ? null
             : () async {
-                final success = await vm.updatePrescription();
-                if (!mounted) return;
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Prescription Updated Successfully"),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  Navigator.pop(context, vm.prescription?.id);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(vm.error ?? "Update failed"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
+          final success = await vm.updatePrescription();
+          if (!mounted) return;
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Prescription Updated Successfully"),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context, vm.prescription?.id);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(vm.error ?? "Update failed"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
           foregroundColor: Colors.white,
@@ -616,17 +621,17 @@ class _PrescriptionUpdateScreenState extends State<PrescriptionUpdateScreen> {
         ),
         child: vm.isSaving
             ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
             : const Text(
-                "Update Prescription",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+          "Update Prescription",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

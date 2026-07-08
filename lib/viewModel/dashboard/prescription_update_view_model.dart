@@ -64,7 +64,7 @@ class PrescriptionUpdateViewModel extends ChangeNotifier {
       nextMeetController.text = p.nextMeet;
       medicines = List<Map<String, dynamic>>.from(
         p.medicines.map(
-          (e) => {
+              (e) => {
             "type": e["type"] ?? "",
             "medicine": e["medicine"] ?? "",
             "dose": e["dose"] ?? "",
@@ -113,32 +113,29 @@ class PrescriptionUpdateViewModel extends ChangeNotifier {
   Future<bool> updatePrescription() async {
     try {
       if (prescription == null) {
-        error = "Prescription not loaded";
-        notifyListeners();
         return false;
       }
       isSaving = true;
-      error = null;
       notifyListeners();
       final p = prescription!;
       final cleanMedicines = medicines
           .where(
             (e) =>
-                (e["type"] ?? "").toString().trim().isNotEmpty &&
-                (e["medicine"] ?? "").toString().trim().isNotEmpty &&
-                (e["dose"] ?? "").toString().trim().isNotEmpty &&
-                (e["duration"] ?? "").toString().trim().isNotEmpty,
-          )
+        (e["type"] ?? "").toString().trim().isNotEmpty &&
+            (e["medicine"] ?? "").toString().trim().isNotEmpty &&
+            (e["dose"] ?? "").toString().trim().isNotEmpty &&
+            (e["duration"] ?? "").toString().trim().isNotEmpty,
+      )
           .map(
             (e) => {
-              "type": e["type"] ?? "",
-              "medicine": e["medicine"] ?? "",
-              "dose": e["dose"] ?? "",
-              "doseTime": e["doseTime"] ?? "",
-              "duration": e["duration"] ?? "",
-              "instruction": e["instruction"] ?? "",
-            },
-          )
+          "type": e["type"] ?? "",
+          "medicine": e["medicine"] ?? "",
+          "dose": e["dose"] ?? "",
+          "doseTime": e["doseTime"] ?? "",
+          "duration": e["duration"] ?? "",
+          "instruction": e["instruction"] ?? "",
+        },
+      )
           .toList();
 
       if (cleanMedicines.isEmpty) {
@@ -150,12 +147,25 @@ class PrescriptionUpdateViewModel extends ChangeNotifier {
       final cleanTests = tests
           .where((e) => e.toString().trim().isNotEmpty)
           .toList();
+
+      // FIX: the previous body was missing every doctorBn* field.
+      // The backend's PrescriptionRequest expects these too, and sending
+      // them as null on update overwrites existing data / can violate
+      // NOT NULL constraints in the DB, causing the backend to throw and
+      // return a non-200 response -- even though the endpoint itself works
+      // fine when tested manually with a complete payload.
       final body = {
         "doctorName": p.doctorName,
+        "doctorBnName": p.doctorBnName,
         "doctorDegree": p.doctorDegree,
+        "doctorBnDegree": p.doctorBnDegree,
         "doctorSpecialist": p.doctorSpecialist,
+        "doctorBnSpecialist": p.doctorBnSpecialist,
         "doctorInstitute": p.doctorInstitute,
+        "doctorBnInstitute": p.doctorBnInstitute,
         "doctorLicense": p.doctorLicense,
+        "doctorBnLicense": p.doctorBnLicense,
+        "doctorBnVisitingTime": p.doctorBnVisitingTime,
         "patientId": p.patientId,
         "patientName": p.patientName,
         "patientAge": p.patientAge,
@@ -173,11 +183,16 @@ class PrescriptionUpdateViewModel extends ChangeNotifier {
       final ok = await _service.updatePrescriptionById(p.id, body);
       isSaving = false;
       if (!ok) {
+        // FIX: this `error` now only represents a save-time failure.
+        // The screen checks `vm.prescription == null` before showing the
+        // full-page error state, so a failed save shows a SnackBar instead
+        // of wiping the whole form off the screen.
         error = "Update failed";
         notifyListeners();
         return false;
       }
       successMessage = "Updated successfully";
+      error = null;
       notifyListeners();
       return true;
     } catch (e) {

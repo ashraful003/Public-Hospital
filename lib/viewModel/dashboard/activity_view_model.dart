@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:public_hospital/model/home_item_model.dart';
 import 'package:public_hospital/view/dashboard/advice_screen.dart';
 import 'package:public_hospital/view/dashboard/doctor_appointment_screen.dart';
+import 'package:public_hospital/view/dashboard/doctor_bn_screen.dart';
 import 'package:public_hospital/view/dashboard/dose_time_screen.dart';
 import 'package:public_hospital/view/dashboard/doses_screen.dart';
 import 'package:public_hospital/view/dashboard/medicine_type_screen.dart';
@@ -27,6 +28,11 @@ class ActivityViewModel extends ChangeNotifier {
       HomeItemModel(
         title: "Appointment",
         icon: Icons.calendar_month,
+        bgColor: Colors.blue,
+      ),
+      HomeItemModel(
+        title: "Doctor Profile",
+        icon: Icons.person,
         bgColor: Colors.blue,
       ),
       HomeItemModel(
@@ -125,6 +131,15 @@ class ActivityViewModel extends ChangeNotifier {
           MaterialPageRoute(
             builder: (_) =>
                 DoctorAppointmentScreen(role: role, nationalId: nationalId),
+          ),
+        );
+        break;
+      case "Doctor Profile":
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                DoctorBnScreen( doctorId: nationalId),
           ),
         );
         break;

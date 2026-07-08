@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:public_hospital/model/prescription_model.dart';
 import '../data/shared_pref_service.dart';
+import '../model/doctor_bn.dart';
 import '../model/test_model.dart';
 import '../model/user_model.dart';
 import 'api_config.dart';
@@ -18,6 +19,22 @@ class PrescriptionService {
       );
       if (response.statusCode == 200) {
         return UserModel.fromJson(jsonDecode(response.body));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<DoctorBn?> loadDoctorBnByDoctorId(String doctorBnId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "${ApiConfig.baseUrl}/doctorBn-profile-/doctor-id/$doctorBnId",
+        ),
+      );
+      if (response.statusCode == 200) {
+        return DoctorBn.fromJson(jsonDecode(response.body));
       }
       return null;
     } catch (e) {

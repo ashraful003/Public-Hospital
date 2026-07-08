@@ -77,30 +77,30 @@ class _MakePrescriptionScreenState extends State<MakePrescriptionScreen> {
                         onPressed: vm.isSubmitting
                             ? null
                             : () async {
-                                final success = await vm.submit(
-                                  rxList: rxList,
-                                  testList: testList,
-                                );
-                                if (!mounted) return;
-                                if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Prescription Created Successfully",
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                  Navigator.pop(context, true);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(vm.error ?? "Failed"),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
+                          final success = await vm.submit(
+                            rxList: rxList,
+                            testList: testList,
+                          );
+                          if (!mounted) return;
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Prescription Created Successfully",
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.pop(context, true);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(vm.error ?? "Failed"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -110,15 +110,15 @@ class _MakePrescriptionScreenState extends State<MakePrescriptionScreen> {
                         ),
                         child: vm.isSubmitting
                             ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
+                          color: Colors.white,
+                        )
                             : const Text(
-                                "Create Prescription",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                          "Create Prescription",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -538,16 +538,62 @@ class _MakePrescriptionScreenState extends State<MakePrescriptionScreen> {
   Widget _buildDoctor(vm) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            vm.doctor?.name ?? "",
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vm.doctor?.name ?? "",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(vm.doctor?.degree ?? ""),
+                Text(vm.doctor?.specialist ?? ""),
+                Text(vm.doctor?. institute?? ""),
+                Text("License: ${vm.doctor?.license ?? ""}"),
+              ],
+            ),
           ),
-          Text(vm.doctor?.degree ?? ""),
-          Text(vm.doctor?.specialist ?? ""),
-          Text("License: ${vm.doctor?.license ?? ""}"),
+          if (vm.doctorBn != null) ...[
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    vm.doctorBn!.doctorBnName,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(vm.doctorBn!.doctorBnDegree, textAlign: TextAlign.right),
+                  Text(
+                    vm.doctorBn!.doctorBnSpecialist,
+                    textAlign: TextAlign.right,
+                  ),
+                  Text(
+                    vm.doctorBn!.doctorBnInstitute,
+                    textAlign: TextAlign.right,
+                  ),
+                  Text(
+                    vm.doctorBn!.doctorBnLicense,
+                    textAlign: TextAlign.right,
+                  ),
+                  Text(
+                    "রোগী দেখার সময়: ${vm.doctorBn!.doctorBnVisitingTime}",
+                    textAlign: TextAlign.right,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

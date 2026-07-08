@@ -3,11 +3,16 @@ import 'dart:convert';
 class PrescriptionModel {
   final int id;
   final String doctorName;
-  final String doctorEmail;
+  final String doctorBnName;
   final String doctorDegree;
+  final String doctorBnDegree;
   final String doctorSpecialist;
+  final String doctorBnSpecialist;
   final String doctorInstitute;
+  final String doctorBnInstitute;
   final String doctorLicense;
+  final String doctorBnLicense;
+  final String doctorBnVisitingTime;
   final String patientId;
   final String patientName;
   final String patientAge;
@@ -25,11 +30,16 @@ class PrescriptionModel {
   PrescriptionModel({
     required this.id,
     required this.doctorName,
-    required this.doctorEmail,
+    required this.doctorBnName,
     required this.doctorDegree,
+    required this.doctorBnDegree,
     required this.doctorSpecialist,
+    required this.doctorBnSpecialist,
     required this.doctorInstitute,
+    required this.doctorBnInstitute,
     required this.doctorLicense,
+    required this.doctorBnLicense,
+    required this.doctorBnVisitingTime,
     required this.patientId,
     required this.patientName,
     required this.patientAge,
@@ -79,11 +89,16 @@ class PrescriptionModel {
     return PrescriptionModel(
       id: json["id"],
       doctorName: json["doctorName"]?.toString() ?? "",
-      doctorEmail: json["doctorEmail"]?.toString() ?? "",
+      doctorBnName: json["doctorBnName"]?.toString() ?? "",
       doctorDegree: json["doctorDegree"]?.toString() ?? "",
+      doctorBnDegree: json["doctorBnDegree"]?.toString() ?? "",
       doctorSpecialist: json["doctorSpecialist"]?.toString() ?? "",
+      doctorBnSpecialist: json["doctorBnSpecialist"]?.toString() ?? "",
       doctorInstitute: json["doctorInstitute"]?.toString() ?? "",
+      doctorBnInstitute: json["doctorBnInstitute"]?.toString() ?? "",
       doctorLicense: json["doctorLicense"]?.toString() ?? "",
+      doctorBnLicense: json["doctorBnLicense"]?.toString() ?? "",
+      doctorBnVisitingTime: json["doctorBnVisitingTime"]?.toString() ?? "",
       patientId: json["patientId"]?.toString() ?? "",
       patientName: json["patientName"]?.toString() ?? "",
       patientAge: json["patientAge"]?.toString() ?? "",

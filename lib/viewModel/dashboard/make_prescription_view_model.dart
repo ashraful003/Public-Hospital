@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../model/doctor_bn.dart';
 import '../../model/user_model.dart';
 import '../../service/prescription_service.dart';
 
 class MakePrescriptionViewModel extends ChangeNotifier {
   final PrescriptionService _service = PrescriptionService();
   UserModel? doctor;
+  DoctorBn? doctorBn;
   UserModel? patient;
   bool isLoading = false;
   bool isSubmitting = false;
@@ -41,6 +43,7 @@ class MakePrescriptionViewModel extends ChangeNotifier {
         durations = await _service.loadDurations(doctor!.nationalId!);
         adviceList = await _service.loadAdvice(doctor!.nationalId!);
         nextMeetList = await _service.loadNextMeet(doctor!.nationalId!);
+        doctorBn = await _service.loadDoctorBnByDoctorId(doctor!.nationalId!);
       }
       tests = await _service.loadTests();
       weightController.text = patient?.weight ?? "";
@@ -62,12 +65,12 @@ class MakePrescriptionViewModel extends ChangeNotifier {
     final validRx = rxList
         .where(
           (e) =>
-              e.type.toString().trim().isNotEmpty &&
-              e.medicine.toString().trim().isNotEmpty &&
-              e.dose.toString().trim().isNotEmpty &&
-              e.doseTime.toString().trim().isNotEmpty &&
-              e.duration.toString().trim().isNotEmpty,
-        )
+      e.type.toString().trim().isNotEmpty &&
+          e.medicine.toString().trim().isNotEmpty &&
+          e.dose.toString().trim().isNotEmpty &&
+          e.doseTime.toString().trim().isNotEmpty &&
+          e.duration.toString().trim().isNotEmpty,
+    )
         .toList();
     final validTests = testList
         .where((e) => e.test.toString().trim().isNotEmpty)
@@ -88,6 +91,12 @@ class MakePrescriptionViewModel extends ChangeNotifier {
         "doctorSpecialist": doctor?.specialist ?? "",
         "doctorInstitute": doctor?.institute ?? "",
         "doctorLicense": doctor?.license ?? "",
+        "doctorBnName": doctorBn?.doctorBnName ?? "",
+        "doctorBnDegree": doctorBn?.doctorBnDegree ?? "",
+        "doctorBnSpecialist": doctorBn?.doctorBnSpecialist ?? "",
+        "doctorBnInstitute": doctorBn?.doctorBnInstitute ?? "",
+        "doctorBnLicense": doctorBn?.doctorBnLicense ?? "",
+        "doctorBnVisitingTime": doctorBn?.doctorBnVisitingTime ?? "",
         "patientId": patient?.nationalId ?? "",
         "patientName": patient?.name ?? "",
         "patientAge": patient?.age ?? "",
@@ -143,7 +152,6 @@ class MakePrescriptionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  @override
   @override
   void dispose() {
     problemController.dispose();

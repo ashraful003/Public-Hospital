@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:public_hospital/view/dashboard/emergency_contact_screen.dart';
+import 'package:public_hospital/view/dashboard/inpatient_bill_screen.dart';
 import 'package:public_hospital/view/dashboard/test_queue_screen.dart';
 import '../../data/shared_pref_service.dart';
 import '../../model/drawer_item_model.dart';
@@ -63,11 +64,13 @@ class DrawerViewModel extends ChangeNotifier {
     } else if (role == "DOCTOR") {
       drawerItems = [
         _item('Doctor Activity', '/activity', 'activity', 0),
-        _item('Inpatient Discharge', '/discharge', 'discharge', 1),
+        _item('Inpatient Bill', '/inpatient', 'inpatient', 1),
         _item('Logout', '/logout', 'logout', 2),
       ];
     } else if (role == "PATIENT") {
-      drawerItems = [_item('Logout', '/logout', 'logout', 0)];
+      drawerItems = [
+        _item('Inpatient Bill', '/inpatient', 'inpatient', 1),
+        _item('Logout', '/logout', 'logout', 0)];
     } else if (role == "DIAGNOSTIC_CENTER") {
       drawerItems = [
         _item('Test', '/test', 'test', 0),
@@ -76,12 +79,12 @@ class DrawerViewModel extends ChangeNotifier {
       ];
     } else if (role == "ACCOUNTANT") {
       drawerItems = [
-        _item('Bill Status', '/status', 'status', 1),
+        _item('Inpatient Bill', '/inpatient', 'inpatient', 1),
         _item('Logout', '/logout', 'logout', 2),
       ];
     } else if (role == "RECEPTIONIST") {
       drawerItems = [
-        _item('Bill Status', '/status', 'status', 0),
+        _item('Inpatient Bill', '/inpatient', 'inpatient', 1),
         _item('Logout', '/logout', 'logout', 1),
       ];
     } else {
@@ -119,22 +122,16 @@ class DrawerViewModel extends ChangeNotifier {
       iconName: 'report',
     ),
     DrawerItemModel(
-      title: 'Bill Status',
-      routeName: '/status',
+      title: 'Inpatient Bill',
+      routeName: '/inpatient',
       index: 3,
-      iconName: 'status',
+      iconName: 'inpatient',
     ),
     DrawerItemModel(
       title: 'Emergency Contact',
       routeName: '/contact',
       index: 4,
       iconName: 'contact',
-    ),
-    DrawerItemModel(
-      title: 'Inpatient Discharge',
-      routeName: '/discharge',
-      index: 5,
-      iconName: 'discharge',
     ),
     DrawerItemModel(
       title: 'Logout',
@@ -152,7 +149,7 @@ class DrawerViewModel extends ChangeNotifier {
         return Icons.description;
       case 'report':
         return Icons.description;
-      case 'status':
+      case 'inpatient':
         return Icons.assignment;
       case 'contact':
         return Icons.phone;
@@ -224,8 +221,13 @@ class DrawerViewModel extends ChangeNotifier {
           ),
         );
         break;
-      case 'status':
-        Navigator.pushNamed(context, '/status');
+      case 'inpatient':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => InpatientBillScreen(role: role, patientId: nationalId),
+          ),
+        );
         break;
       case 'contact':
         Navigator.push(

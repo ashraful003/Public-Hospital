@@ -63,28 +63,54 @@ class PrescriptionDetailScreen extends StatelessWidget {
                     icon: const Icon(Icons.print, color: Colors.black),
                     onPressed: () async {
                       final boundary =
-                          _printKey.currentContext?.findRenderObject()
-                              as RenderRepaintBoundary?;
+                      _printKey.currentContext?.findRenderObject()
+                      as RenderRepaintBoundary?;
                       if (boundary == null) return;
-                      final image = await boundary.toImage(pixelRatio: 4.0);
+
+                      // FIX: pixelRatio is now derived from the actual A4
+                      // print resolution instead of an arbitrary constant,
+                      // so the capture resolution always lines up with the
+                      // physical A4 page size regardless of the boundary's
+                      // logical pixel size.
+                      const double targetDpi = 300;
+                      const double baseDpi = 96; // logical px per inch
+                      final double pixelRatio = targetDpi / baseDpi;
+
+                      final image = await boundary.toImage(
+                        pixelRatio: pixelRatio,
+                      );
                       final byteData = await image.toByteData(
                         format: ui.ImageByteFormat.png,
                       );
                       if (byteData == null) return;
                       Uint8List pngBytes = byteData.buffer.asUint8List();
+
                       await Printing.layoutPdf(
                         onLayout: (format) async {
                           final pdf = pw.Document();
                           final imageProvider = pw.MemoryImage(pngBytes);
+
+                          // FIX: explicitly build the page at A4 size with
+                          // zero margin, then center the captured image on
+                          // it using BoxFit.contain (not fill). This keeps
+                          // the prescription's own aspect ratio intact and
+                          // guarantees it sits flush and correctly aligned
+                          // on a true A4 page instead of being stretched to
+                          // whatever the print dialog's format happens to
+                          // report.
                           pdf.addPage(
                             pw.Page(
                               pageFormat: PdfPageFormat.a4,
                               margin: pw.EdgeInsets.zero,
                               build: (context) {
-                                return pw.SizedBox.expand(
-                                  child: pw.Image(
-                                    imageProvider,
-                                    fit: pw.BoxFit.fill,
+                                return pw.Center(
+                                  child: pw.SizedBox(
+                                    width: PdfPageFormat.a4.width,
+                                    height: PdfPageFormat.a4.height,
+                                    child: pw.Image(
+                                      imageProvider,
+                                      fit: pw.BoxFit.contain,
+                                    ),
                                   ),
                                 );
                               },
@@ -92,6 +118,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                           );
                           return pdf.save();
                         },
+                        format: PdfPageFormat.a4,
                       );
                     },
                   );
@@ -112,9 +139,14 @@ class PrescriptionDetailScreen extends StatelessWidget {
             if (p == null) {
               return const Center(child: Text("No Prescription Found"));
             }
+            final hasDoctorBn = p.doctorBnName.isNotEmpty;
+            final hasDoctorBnVisitingTime = p.doctorBnVisitingTime.isNotEmpty;
             return SingleChildScrollView(
               child: Center(
                 child: Container(
+                  // A4 at 96 logical px/inch: 210mm x 297mm = 794 x 1123 px.
+                  // Kept as-is so the on-screen preview and the captured
+                  // image both match the true A4 aspect ratio (0.7071).
                   width: 794,
                   height: 1123,
                   decoration: BoxDecoration(
@@ -142,27 +174,79 @@ class PrescriptionDetailScreen extends StatelessWidget {
                             ),
                             alignment: Alignment.centerLeft,
                             color: const Color(0xFFFFFACC),
-                            child: Column(
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  p.doctorName,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p.doctorName,
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                      Text(p.doctorDegree),
+                                      Text(
+                                        p.doctorSpecialist,
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      Text(p.doctorInstitute),
+                                      Text(
+                                        "BM&DC Reg. No: ${p.doctorLicense}",
+                                        style: const TextStyle(
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                Text(p.doctorDegree),
-                                Text(
-                                  p.doctorSpecialist,
-                                  style: const TextStyle(color: Colors.green),
-                                ),
-                                Text(p.doctorInstitute),
-                                Text(
-                                  "BM&DC Reg. No: ${p.doctorLicense}",
-                                  style: const TextStyle(color: Colors.blue),
-                                ),
+                                if (hasDoctorBn)
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          p.doctorBnName,
+                                          textAlign: TextAlign.right,
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                        Text(
+                                          p.doctorBnDegree,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                        Text(
+                                          p.doctorBnSpecialist,
+                                          textAlign: TextAlign.right,
+                                          style: const TextStyle(
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                        Text(
+                                          p.doctorBnInstitute,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                        Text(
+                                          "বিএম ও ডিসি রেজিস্ট্রেশন নং: ${p.doctorBnLicense}",
+                                          textAlign: TextAlign.right,
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -247,7 +331,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         _leftText("O/E :"),
                                         const SizedBox(height: 12),
@@ -257,7 +341,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                           ),
                                           child: Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                             children: [
                                               Text("BP : ${p.bloodPressure}"),
                                               Text("Pulse : ${p.pulse}"),
@@ -269,7 +353,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                         _leftText("Problems :"),
                                         Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          CrossAxisAlignment.start,
                                           children: [
                                             ...p.problems
                                                 .split('.')
@@ -277,37 +361,37 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                                 .where((e) => e.isNotEmpty)
                                                 .map(
                                                   (e) => Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          bottom: 6,
-                                                        ),
-                                                    child: Row(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        const Text(
-                                                          "•  ",
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                          ),
-                                                        ),
-                                                        Expanded(
-                                                          child: Text(
-                                                            e,
-                                                            softWrap: true,
-                                                            style:
-                                                                const TextStyle(
-                                                                  height: 1.4,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
+                                                padding:
+                                                const EdgeInsets.only(
+                                                  bottom: 6,
                                                 ),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment
+                                                      .start,
+                                                  children: [
+                                                    const Text(
+                                                      "•  ",
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                        FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: Text(
+                                                        e,
+                                                        softWrap: true,
+                                                        style:
+                                                        const TextStyle(
+                                                          height: 1.4,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 35),
@@ -315,23 +399,23 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                         const SizedBox(height: 8),
                                         Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          CrossAxisAlignment.start,
                                           children: [
                                             ...p.tests.map(
-                                              (e) => Padding(
+                                                  (e) => Padding(
                                                 padding: const EdgeInsets.only(
                                                   bottom: 6,
                                                 ),
                                                 child: Row(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                                   children: [
                                                     const Text(
                                                       "•  ",
                                                       style: TextStyle(
                                                         fontSize: 16,
                                                         fontWeight:
-                                                            FontWeight.w500,
+                                                        FontWeight.w500,
                                                       ),
                                                     ),
                                                     Expanded(
@@ -365,7 +449,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                       builder: (context, constraints) {
                                         return SingleChildScrollView(
                                           physics:
-                                              const NeverScrollableScrollPhysics(),
+                                          const NeverScrollableScrollPhysics(),
                                           child: ConstrainedBox(
                                             constraints: BoxConstraints(
                                               minHeight: constraints.maxHeight,
@@ -373,54 +457,54 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                             child: IntrinsicHeight(
                                               child: Column(
                                                 crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                CrossAxisAlignment.start,
                                                 children: [
                                                   const Text(
                                                     "℞.",
                                                     style: TextStyle(
                                                       fontSize: 35,
                                                       fontWeight:
-                                                          FontWeight.bold,
+                                                      FontWeight.bold,
                                                     ),
                                                   ),
                                                   const SizedBox(height: 15),
                                                   ...p.medicines.map(
-                                                    (m) => Padding(
+                                                        (m) => Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                            left: 30,
-                                                            bottom: 18,
-                                                          ),
+                                                      const EdgeInsets.only(
+                                                        left: 30,
+                                                        bottom: 18,
+                                                      ),
                                                       child: Column(
                                                         crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                         children: [
                                                           RichText(
                                                             text: TextSpan(
                                                               children: [
                                                                 TextSpan(
                                                                   text:
-                                                                      "• ${m["type"]}. ",
+                                                                  "• ${m["type"]}. ",
                                                                   style: const TextStyle(
                                                                     fontSize:
-                                                                        16,
+                                                                    16,
                                                                     fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
+                                                                    FontWeight
+                                                                        .w600,
                                                                     color: Colors
                                                                         .black,
                                                                   ),
                                                                 ),
                                                                 TextSpan(
                                                                   text:
-                                                                      "${m["medicine"]}",
+                                                                  "${m["medicine"]}",
                                                                   style: const TextStyle(
                                                                     fontSize:
-                                                                        16,
+                                                                    16,
                                                                     fontWeight:
-                                                                        FontWeight
-                                                                            .w600,
+                                                                    FontWeight
+                                                                        .w600,
                                                                     color: Colors
                                                                         .black,
                                                                   ),
@@ -433,10 +517,10 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                                           ),
                                                           Padding(
                                                             padding:
-                                                                const EdgeInsets.only(
-                                                                  left: 10,
-                                                                  right: 40,
-                                                                ),
+                                                            const EdgeInsets.only(
+                                                              left: 10,
+                                                              right: 40,
+                                                            ),
                                                             child: Row(
                                                               children: [
                                                                 Expanded(
@@ -449,10 +533,10 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                                                   flex: 5,
                                                                   child: Padding(
                                                                     padding:
-                                                                        const EdgeInsets.only(
-                                                                          left:
-                                                                              15,
-                                                                        ),
+                                                                    const EdgeInsets.only(
+                                                                      left:
+                                                                      15,
+                                                                    ),
                                                                     child: Text(
                                                                       "${m["doseTime"]}",
                                                                     ),
@@ -477,92 +561,92 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                                   const Spacer(),
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.only(
-                                                          left: 30,
-                                                        ),
+                                                    const EdgeInsets.only(
+                                                      left: 30,
+                                                    ),
                                                     child: _leftText("উপদেশঃ"),
                                                   ),
                                                   const SizedBox(height: 5),
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.only(
-                                                          left: 38,
-                                                        ),
+                                                    const EdgeInsets.only(
+                                                      left: 38,
+                                                    ),
                                                     child: Column(
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                      CrossAxisAlignment
+                                                          .start,
                                                       children: [
                                                         ...p.advice
                                                             .split('.')
                                                             .map(
                                                               (e) => e.trim(),
-                                                            )
+                                                        )
                                                             .where(
                                                               (e) =>
-                                                                  e.isNotEmpty,
-                                                            )
+                                                          e.isNotEmpty,
+                                                        )
                                                             .map(
                                                               (e) => Padding(
-                                                                padding:
-                                                                    const EdgeInsets.only(
-                                                                      bottom: 6,
-                                                                    ),
-                                                                child: Row(
-                                                                  crossAxisAlignment:
-                                                                      CrossAxisAlignment
-                                                                          .start,
-                                                                  children: [
-                                                                    const Text(
-                                                                      "•  ",
-                                                                      style: TextStyle(
-                                                                        fontSize:
-                                                                            16,
-                                                                        fontWeight:
-                                                                            FontWeight.w500,
-                                                                      ),
-                                                                    ),
-                                                                    Expanded(
-                                                                      child: Text(
-                                                                        e,
-                                                                        softWrap:
-                                                                            true,
-                                                                        style: const TextStyle(
-                                                                          height:
-                                                                              1.4,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
+                                                            padding:
+                                                            const EdgeInsets.only(
+                                                              bottom: 6,
                                                             ),
+                                                            child: Row(
+                                                              crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                              children: [
+                                                                const Text(
+                                                                  "•  ",
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                    16,
+                                                                    fontWeight:
+                                                                    FontWeight.w500,
+                                                                  ),
+                                                                ),
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    e,
+                                                                    softWrap:
+                                                                    true,
+                                                                    style: const TextStyle(
+                                                                      height:
+                                                                      1.4,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
                                                       ],
                                                     ),
                                                   ),
                                                   const SizedBox(height: 10),
                                                   Padding(
                                                     padding:
-                                                        const EdgeInsets.only(
-                                                          left: 30,
-                                                          bottom: 10,
-                                                        ),
+                                                    const EdgeInsets.only(
+                                                      left: 30,
+                                                      bottom: 10,
+                                                    ),
                                                     child: Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                            bottom: 15,
-                                                          ),
+                                                      const EdgeInsets.only(
+                                                        bottom: 15,
+                                                      ),
                                                       child: Column(
                                                         crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
+                                                        CrossAxisAlignment
+                                                            .start,
                                                         children: [
                                                           const Text(
                                                             "ফলোআপঃ",
                                                             style: TextStyle(
                                                               fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
+                                                              FontWeight
+                                                                  .bold,
                                                             ),
                                                           ),
                                                           const SizedBox(
@@ -570,9 +654,9 @@ class PrescriptionDetailScreen extends StatelessWidget {
                                                           ),
                                                           Padding(
                                                             padding:
-                                                                const EdgeInsets.only(
-                                                                  left: 5,
-                                                                ),
+                                                            const EdgeInsets.only(
+                                                              left: 5,
+                                                            ),
                                                             child: Text(
                                                               "• ${p.nextMeet}",
                                                             ),
@@ -593,6 +677,48 @@ class PrescriptionDetailScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                          if (hasDoctorBnVisitingTime)
+                            Container(
+                              width: double.infinity,
+                              height: 50, // Adjust as needed
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFFFACC),
+                                border: Border(
+                                  top: BorderSide(
+                                    color: Colors.black,
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      const TextSpan(
+                                        text: "রোগী দেখার সময় : ",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: p.doctorBnVisitingTime ?? "",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

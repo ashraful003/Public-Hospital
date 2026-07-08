@@ -73,6 +73,8 @@ class _AdmissionDetailsView extends StatelessWidget {
             isPrivileged: _isPrivileged,
             admissionId: admissionId,
             isLoading: vm.isLoading,
+            canDischarge: vm.canDischarge,
+            dischargeBlockedReason: vm.dischargeBlockedReason,
           );
         },
       ),
@@ -85,12 +87,16 @@ class _DetailsScrollView extends StatelessWidget {
   final bool isPrivileged;
   final int admissionId;
   final bool isLoading;
+  final bool canDischarge;
+  final String dischargeBlockedReason;
 
   const _DetailsScrollView({
     required this.admission,
     required this.isPrivileged,
     required this.admissionId,
     required this.isLoading,
+    required this.canDischarge,
+    required this.dischargeBlockedReason,
   });
 
   @override
@@ -174,7 +180,11 @@ class _DetailsScrollView extends StatelessWidget {
                 ),
                 if (isPrivileged) ...[
                   const SizedBox(height: 24),
-                  _ActionBar(admission: admission),
+                  _ActionBar(
+                    admission: admission,
+                    canDischarge: canDischarge,
+                    dischargeBlockedReason: dischargeBlockedReason,
+                  ),
                 ],
               ]),
             ),
@@ -312,11 +322,20 @@ class _DetailRow extends StatelessWidget {
 
 class _ActionBar extends StatelessWidget {
   final HospitalAdmission admission;
+  final bool canDischarge;
+  final String dischargeBlockedReason;
 
-  const _ActionBar({super.key, required this.admission});
+  const _ActionBar({
+    super.key,
+    required this.admission,
+    required this.canDischarge,
+    required this.dischargeBlockedReason,
+  });
 
   bool get _isAlreadyDischarged =>
       (admission.status ?? '').trim().toLowerCase() == 'discharged';
+
+  bool get _isDischargeDisabled => _isAlreadyDischarged || !canDischarge;
 
   ButtonStyle _buttonStyle({required Color backgroundColor}) {
     return ElevatedButton.styleFrom(
@@ -334,85 +353,121 @@ class _ActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              final updated = await Navigator.of(context).push<bool>(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      AdmissionUpdateScreen(admissionId: admission.id!),
-                ),
-              );
-              if (updated == true && context.mounted) {
-                context.read<AdmissionDetailsViewModel>().refresh(
-                  admissionId: admission.id!,
-                );
-              }
-            },
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Update', overflow: TextOverflow.ellipsis),
-            style: _buttonStyle(backgroundColor: const Color(0xFF1A6B8A)),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _isAlreadyDischarged
-                ? null
-                : () {
-                    Navigator.of(context)
-                        .push<bool>(
-                          MaterialPageRoute(
-                            builder: (_) => AdmissionTransferScreen(
-                              admissionId: admission.id!,
-                            ),
-                          ),
-                        )
-                        .then((updated) {
-                          if (updated == true && context.mounted) {
-                            context.read<AdmissionDetailsViewModel>().refresh(
-                              admissionId: admission.id!,
-                            );
-                          }
-                        });
-                  },
-            icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-            label: const Text('Transfer', overflow: TextOverflow.ellipsis),
-            style: _buttonStyle(backgroundColor: const Color(0xFFE65100)),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _isAlreadyDischarged
-                ? null
-                : () {
-                    Navigator.of(context)
-                        .push<bool>(
-                          MaterialPageRoute(
-                            builder: (_) => AdmissionDischargeScreen(
-                              admissionId: admission.id!,
-                            ),
-                          ),
-                        )
-                        .then((updated) {
-                          if (updated == true && context.mounted) {
-                            context.read<AdmissionDetailsViewModel>().refresh(
-                              admissionId: admission.id!,
-                            );
-                          }
-                        });
-                  },
-            icon: const Icon(Icons.logout_rounded, size: 18),
-            label: Text(
-              _isAlreadyDischarged ? 'Discharged' : 'Discharge',
-              overflow: TextOverflow.ellipsis,
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final updated = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AdmissionUpdateScreen(admissionId: admission.id!),
+                    ),
+                  );
+                  if (updated == true && context.mounted) {
+                    context.read<AdmissionDetailsViewModel>().refresh(
+                      admissionId: admission.id!,
+                    );
+                  }
+                },
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Update', overflow: TextOverflow.ellipsis),
+                style: _buttonStyle(backgroundColor: const Color(0xFF1A6B8A)),
+              ),
             ),
-            style: _buttonStyle(backgroundColor: const Color(0xFF2E7D32)),
-          ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _isAlreadyDischarged
+                    ? null
+                    : () {
+                        Navigator.of(context)
+                            .push<bool>(
+                              MaterialPageRoute(
+                                builder: (_) => AdmissionTransferScreen(
+                                  admissionId: admission.id!,
+                                ),
+                              ),
+                            )
+                            .then((updated) {
+                              if (updated == true && context.mounted) {
+                                context
+                                    .read<AdmissionDetailsViewModel>()
+                                    .refresh(admissionId: admission.id!);
+                              }
+                            });
+                      },
+                icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                label: const Text('Transfer', overflow: TextOverflow.ellipsis),
+                style: _buttonStyle(backgroundColor: const Color(0xFFE65100)),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Tooltip(
+                message: _isDischargeDisabled && !_isAlreadyDischarged
+                    ? dischargeBlockedReason
+                    : '',
+                child: ElevatedButton.icon(
+                  onPressed: _isDischargeDisabled
+                      ? null
+                      : () {
+                          Navigator.of(context)
+                              .push<bool>(
+                                MaterialPageRoute(
+                                  builder: (_) => AdmissionDischargeScreen(
+                                    admissionId: admission.id!,
+                                  ),
+                                ),
+                              )
+                              .then((updated) {
+                                if (updated == true && context.mounted) {
+                                  context
+                                      .read<AdmissionDetailsViewModel>()
+                                      .refresh(admissionId: admission.id!);
+                                }
+                              });
+                        },
+                  icon: const Icon(Icons.logout_rounded, size: 18),
+                  label: Text(
+                    _isAlreadyDischarged ? 'Discharged' : 'Discharge',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  style: _buttonStyle(backgroundColor: const Color(0xFF2E7D32)),
+                ),
+              ),
+            ),
+          ],
         ),
+        if (!_isAlreadyDischarged && !canDischarge) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  size: 14,
+                  color: Color(0xFF9EA8B3),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    dischargeBlockedReason,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Color(0xFF9EA8B3),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

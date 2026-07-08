@@ -85,23 +85,29 @@ class _AdmissionViewState extends State<_AdmissionView> {
       actions: [
         if (_isPrivileged)
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded),
+            iconSize: 25, // Change to your desired size
+            icon: const Icon(
+              Icons.add_circle_outline_rounded,
+            ),
             tooltip: 'Admit patient',
             onPressed: () => _openAdmitPatient(context),
           ),
-        Consumer<AdmissionViewModel>(
-          builder: (_, vm, __) => IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Refresh',
-            onPressed: vm.isLoading
-                ? null
-                : () {
-                    if (_isPrivileged) _searchController.clear();
-                    vm.refresh(
-                      isPrivileged: widget.role,
-                      currentPatientId: widget.patientId,
-                    );
-                  },
+        Padding(
+          padding: const EdgeInsets.only(left: 10, right: 10),
+          child: Consumer<AdmissionViewModel>(
+            builder: (_, vm, __) => IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh',
+              onPressed: vm.isLoading
+                  ? null
+                  : () {
+                      if (_isPrivileged) _searchController.clear();
+                      vm.refresh(
+                        isPrivileged: widget.role,
+                        currentPatientId: widget.patientId,
+                      );
+                    },
+            ),
           ),
         ),
       ],
